@@ -1,909 +1,2586 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comment marche un LLM — explication visuelle</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#F4F1EA; --ink:#1C1B18; --muted:#7A7670; --line:#DDD7CD;
-  --paper:#FFFEFB;
-  --c-system:#C26020; --c-user:#2557C2; --c-ai:#1A7B4A;
-  --c-perso:#0E8090; --c-skill:#A03070; --c-tool:#A07820; --c-think:#8050D0;
-  --c-cache:#888888; --c-compact:#B85B45;
-}
-html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);
-  -webkit-font-smoothing:antialiased}
-body{overflow-x:hidden}
-#root{min-height:100%}
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Comment marche un LLM — explication visuelle</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <script
+            src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+            integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+            integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+            integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+            crossorigin="anonymous"
+        ></script>
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            :root {
+                --bg: #f4f1ea;
+                --ink: #1c1b18;
+                --muted: #7a7670;
+                --line: #ddd7cd;
+                --paper: #fffefb;
+                --c-system: #c26020;
+                --c-user: #2557c2;
+                --c-ai: #1a7b4a;
+                --c-perso: #0e8090;
+                --c-skill: #a03070;
+                --c-tool: #a07820;
+                --c-think: #8050d0;
+                --c-cache: #888888;
+                --c-compact: #b85b45;
+            }
+            html,
+            body {
+                height: 100%;
+                font-family: "Outfit", sans-serif;
+                background: var(--bg);
+                color: var(--ink);
+                -webkit-font-smoothing: antialiased;
+            }
+            body {
+                overflow-x: hidden;
+            }
+            #root {
+                min-height: 100%;
+            }
 
-/* TOP bar */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:50;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px;
-  background:linear-gradient(to bottom,rgba(244,241,234,.97),rgba(244,241,234,.7));
-  backdrop-filter:blur(8px)}
-.brand{font-size:13px;font-weight:600;letter-spacing:.01em;color:var(--ink)}
-.brand .dot{display:inline-block;width:8px;height:8px;background:var(--ink);
-  border-radius:2px;margin-right:8px;vertical-align:middle}
-.act-pill{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.10em;
-  text-transform:uppercase;font-variant-numeric:tabular-nums}
-.act-pill .num{color:var(--ink)}
+            /* TOP bar */
+            .topbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 50;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 28px;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(244, 241, 234, 0.97),
+                    rgba(244, 241, 234, 0.7)
+                );
+                backdrop-filter: blur(8px);
+            }
+            .brand {
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 0.01em;
+                color: var(--ink);
+            }
+            .brand .dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                background: var(--ink);
+                border-radius: 2px;
+                margin-right: 8px;
+                vertical-align: middle;
+            }
+            .act-pill {
+                font-size: 10.5px;
+                font-weight: 700;
+                color: var(--muted);
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                font-variant-numeric: tabular-nums;
+            }
+            .act-pill .num {
+                color: var(--ink);
+            }
 
-/* Progress rail (right side) */
-.rail{position:fixed;top:50%;right:24px;transform:translateY(-50%);z-index:40;
-  display:flex;flex-direction:column;gap:9px;align-items:center}
-.rail-tick{width:5px;height:5px;border-radius:3px;background:#D8D2C8;cursor:pointer;
-  transition:all .25s;border:none;padding:0}
-.rail-tick:hover{background:#999}
-.rail-tick.done{background:#B0BAC8}
-.rail-tick.active{height:22px;background:var(--ink)}
+            /* Progress rail (right side) */
+            .rail {
+                position: fixed;
+                top: 50%;
+                right: 24px;
+                transform: translateY(-50%);
+                z-index: 40;
+                display: flex;
+                flex-direction: column;
+                gap: 9px;
+                align-items: center;
+            }
+            .rail-tick {
+                width: 5px;
+                height: 5px;
+                border-radius: 3px;
+                background: #d8d2c8;
+                cursor: pointer;
+                transition: all 0.25s;
+                border: none;
+                padding: 0;
+            }
+            .rail-tick:hover {
+                background: #999;
+            }
+            .rail-tick.done {
+                background: #b0bac8;
+            }
+            .rail-tick.active {
+                height: 22px;
+                background: var(--ink);
+            }
 
-/* HERO / FIRST SCENE */
-.hero{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:60px 24px;gap:18px;text-align:center}
-.hero h1{font-size:clamp(40px,6vw,76px);font-weight:800;line-height:1.05;letter-spacing:-.02em;
-  max-width:14ch}
-.hero .sub{font-size:18px;color:var(--muted);max-width:48ch;line-height:1.55}
-.hero .cta{margin-top:24px;font-size:13px;color:var(--muted);letter-spacing:.04em;
-  display:flex;align-items:center;gap:10px}
-.hero .cta .arrow{display:inline-block;width:1px;height:18px;background:var(--muted);
-  position:relative;animation:hereflow 1.6s ease-in-out infinite}
-@keyframes hereflow{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:1;transform:translateY(4px)}}
+            /* HERO / FIRST SCENE */
+            .hero {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 24px;
+                gap: 18px;
+                text-align: center;
+            }
+            .hero h1 {
+                font-size: clamp(40px, 6vw, 76px);
+                font-weight: 800;
+                line-height: 1.05;
+                letter-spacing: -0.02em;
+                max-width: 14ch;
+            }
+            .hero .sub {
+                font-size: 18px;
+                color: var(--muted);
+                max-width: 48ch;
+                line-height: 1.55;
+            }
+            .hero .cta {
+                margin-top: 24px;
+                font-size: 13px;
+                color: var(--muted);
+                letter-spacing: 0.04em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .hero .cta .arrow {
+                display: inline-block;
+                width: 1px;
+                height: 18px;
+                background: var(--muted);
+                position: relative;
+                animation: hereflow 1.6s ease-in-out infinite;
+            }
+            @keyframes hereflow {
+                0%,
+                100% {
+                    opacity: 0.4;
+                    transform: translateY(0);
+                }
+                50% {
+                    opacity: 1;
+                    transform: translateY(4px);
+                }
+            }
 
-/* GENERIC ACT */
-.act{position:relative}
-.act-inner{position:sticky;top:0;height:100vh;display:grid;
-  grid-template-columns:minmax(360px,42%) 1fr;
-  align-items:center;gap:0}
-.act-text{padding:80px 50px 80px 60px;max-width:560px;justify-self:end}
-.act-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.act-eyebrow .num{display:inline-flex;align-items:center;justify-content:center;
-  width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;letter-spacing:0}
-.act h2{font-size:clamp(32px,3.6vw,48px);font-weight:800;line-height:1.08;
-  letter-spacing:-.015em;margin-bottom:18px;text-wrap:balance}
-.act-lede{font-size:17px;line-height:1.55;color:#3A3834;text-wrap:pretty}
-.act-lede + .act-lede{margin-top:14px}
-.act-lede strong{font-weight:600;color:var(--ink)}
-.act-lede em{font-style:italic;color:#5A5752}
-.act-note{margin-top:22px;padding:13px 16px;border-left:3px solid var(--ink);
-  font-size:14px;line-height:1.55;color:#3A3834;background:rgba(255,255,255,.6)}
-.act-note strong{font-weight:600;color:var(--ink)}
+            /* GENERIC ACT */
+            .act {
+                position: relative;
+            }
+            .act-inner {
+                position: sticky;
+                top: 0;
+                height: 100vh;
+                display: grid;
+                grid-template-columns: minmax(360px, 42%) 1fr;
+                align-items: center;
+                gap: 0;
+            }
+            .act-text {
+                padding: 80px 50px 80px 60px;
+                max-width: 560px;
+                justify-self: end;
+            }
+            .act-eyebrow {
+                font-size: 10.5px;
+                font-weight: 700;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: var(--muted);
+                margin-bottom: 14px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .act-eyebrow .num {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                color: #fff;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0;
+            }
+            .act h2 {
+                font-size: clamp(32px, 3.6vw, 48px);
+                font-weight: 800;
+                line-height: 1.08;
+                letter-spacing: -0.015em;
+                margin-bottom: 18px;
+                text-wrap: balance;
+            }
+            .act-lede {
+                font-size: 17px;
+                line-height: 1.55;
+                color: #3a3834;
+                text-wrap: pretty;
+            }
+            .act-lede + .act-lede {
+                margin-top: 14px;
+            }
+            .act-lede strong {
+                font-weight: 600;
+                color: var(--ink);
+            }
+            .act-lede em {
+                font-style: italic;
+                color: #5a5752;
+            }
+            .act-note {
+                margin-top: 22px;
+                padding: 13px 16px;
+                border-left: 3px solid var(--ink);
+                font-size: 14px;
+                line-height: 1.55;
+                color: #3a3834;
+                background: rgba(255, 255, 255, 0.6);
+            }
+            .act-note strong {
+                font-weight: 600;
+                color: var(--ink);
+            }
 
-.act-stage{position:relative;height:100%;display:flex;align-items:center;justify-content:center;
-  padding:60px 80px 60px 0;overflow:hidden}
+            .act-stage {
+                position: relative;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 80px 60px 0;
+                overflow: hidden;
+            }
 
-/* common token chip */
-.tok{display:inline-block;padding:2px 7px;margin:2px;border-radius:3px;
-  font-family:'Fira Code',monospace;font-size:11.5px;line-height:1.4;
-  background:rgba(0,0,0,.05);color:var(--ink);border:1px solid rgba(0,0,0,.08);
-  letter-spacing:-.01em}
-.tok.user{background:rgba(37,87,194,.08);color:var(--c-user);border-color:rgba(37,87,194,.25)}
-.tok.ai{background:rgba(26,123,74,.08);color:var(--c-ai);border-color:rgba(26,123,74,.25)}
-.tok.sys{background:rgba(194,96,32,.08);color:var(--c-system);border-color:rgba(194,96,32,.25)}
-.tok.think{background:rgba(128,80,208,.08);color:var(--c-think);border-color:rgba(128,80,208,.25)}
-.tok.tool{background:rgba(160,120,32,.08);color:var(--c-tool);border-color:rgba(160,120,32,.25)}
-.tok.skill{background:rgba(160,48,112,.08);color:var(--c-skill);border-color:rgba(160,48,112,.25)}
-.tok.perso{background:rgba(14,128,144,.08);color:var(--c-perso);border-color:rgba(14,128,144,.25)}
-.tok.cached{background:#EDEAE3;color:#999;border-color:#DDD7CD}
+            /* common token chip */
+            .tok {
+                display: inline-block;
+                padding: 2px 7px;
+                margin: 2px;
+                border-radius: 3px;
+                font-family: "Fira Code", monospace;
+                font-size: 11.5px;
+                line-height: 1.4;
+                background: rgba(0, 0, 0, 0.05);
+                color: var(--ink);
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                letter-spacing: -0.01em;
+            }
+            .tok.user {
+                background: rgba(37, 87, 194, 0.08);
+                color: var(--c-user);
+                border-color: rgba(37, 87, 194, 0.25);
+            }
+            .tok.ai {
+                background: rgba(26, 123, 74, 0.08);
+                color: var(--c-ai);
+                border-color: rgba(26, 123, 74, 0.25);
+            }
+            .tok.sys {
+                background: rgba(194, 96, 32, 0.08);
+                color: var(--c-system);
+                border-color: rgba(194, 96, 32, 0.25);
+            }
+            .tok.think {
+                background: rgba(128, 80, 208, 0.08);
+                color: var(--c-think);
+                border-color: rgba(128, 80, 208, 0.25);
+            }
+            .tok.tool {
+                background: rgba(160, 120, 32, 0.08);
+                color: var(--c-tool);
+                border-color: rgba(160, 120, 32, 0.25);
+            }
+            .tok.skill {
+                background: rgba(160, 48, 112, 0.08);
+                color: var(--c-skill);
+                border-color: rgba(160, 48, 112, 0.25);
+            }
+            .tok.perso {
+                background: rgba(14, 128, 144, 0.08);
+                color: var(--c-perso);
+                border-color: rgba(14, 128, 144, 0.25);
+            }
+            .tok.cached {
+                background: #edeae3;
+                color: #999;
+                border-color: #ddd7cd;
+            }
 
-/* The "machine" / function */
-.fn-box{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
-  border:2px solid var(--ink);background:#fff;padding:22px 26px;min-width:140px;
-  border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);position:relative}
-.fn-box.tall{padding:32px 28px}
-.fn-box .label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:6px}
-.fn-box .name{font-size:22px;font-weight:800;letter-spacing:-.01em}
-.fn-box .icon{font-size:28px;margin-bottom:6px}
+            /* The "machine" / function */
+            .fn-box {
+                display: inline-flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid var(--ink);
+                background: #fff;
+                padding: 22px 26px;
+                min-width: 140px;
+                border-radius: 14px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+                position: relative;
+            }
+            .fn-box.tall {
+                padding: 32px 28px;
+            }
+            .fn-box .label {
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--muted);
+                margin-bottom: 6px;
+            }
+            .fn-box .name {
+                font-size: 22px;
+                font-weight: 800;
+                letter-spacing: -0.01em;
+            }
+            .fn-box .icon {
+                font-size: 28px;
+                margin-bottom: 6px;
+            }
 
-/* Paper / context block */
-.paper{background:var(--paper);border:1.5px solid var(--line);border-radius:10px;
-  position:relative;box-shadow:0 4px 16px rgba(0,0,0,.04)}
-.paper.scroll{max-height:100%;overflow:hidden}
-.paper-row{padding:10px 14px;border-bottom:1px solid #F0EBE2;border-left:3px solid;
-  display:flex;flex-direction:column;gap:5px}
-.paper-row:last-child{border-bottom:none}
-.row-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.row-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  padding:2px 7px;border-radius:8px;color:#fff;white-space:nowrap}
-.row-meta{font-size:9.5px;color:var(--muted);font-family:'Fira Code',monospace}
-.row-text{font-size:11.5px;color:#444;line-height:1.45;font-family:'Fira Code',monospace;
-  white-space:pre-wrap}
-.row-text.normal{font-family:'Outfit',sans-serif;font-size:12px}
+            /* Paper / context block */
+            .paper {
+                background: var(--paper);
+                border: 1.5px solid var(--line);
+                border-radius: 10px;
+                position: relative;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            }
+            .paper.scroll {
+                max-height: 100%;
+                overflow: hidden;
+            }
+            .paper-row {
+                padding: 10px 14px;
+                border-bottom: 1px solid #f0ebe2;
+                border-left: 3px solid;
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+            .paper-row:last-child {
+                border-bottom: none;
+            }
+            .row-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+            }
+            .row-badge {
+                font-size: 9px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                padding: 2px 7px;
+                border-radius: 8px;
+                color: #fff;
+                white-space: nowrap;
+            }
+            .row-meta {
+                font-size: 9.5px;
+                color: var(--muted);
+                font-family: "Fira Code", monospace;
+            }
+            .row-text {
+                font-size: 11.5px;
+                color: #444;
+                line-height: 1.45;
+                font-family: "Fira Code", monospace;
+                white-space: pre-wrap;
+            }
+            .row-text.normal {
+                font-family: "Outfit", sans-serif;
+                font-size: 12px;
+            }
 
-/* layered context (acte 4) */
-.layer-stack{display:flex;flex-direction:column;gap:4px;width:100%;max-width:520px}
-.layer{padding:11px 16px;border-radius:8px;border-left:4px solid;
-  background:#fff;display:flex;align-items:center;gap:14px;
-  transition:all .4s cubic-bezier(.4,0,.2,1)}
-.layer.dim{opacity:.35;filter:grayscale(.4)}
-.layer-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
-.layer-info{flex:1;min-width:0}
-.layer-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:1px}
-.layer-desc{font-size:11px;color:var(--muted);line-height:1.35}
-.layer-tok{font-size:10px;font-family:'Fira Code',monospace;color:var(--muted);
-  white-space:nowrap;flex-shrink:0}
+            /* layered context (acte 4) */
+            .layer-stack {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                width: 100%;
+                max-width: 520px;
+            }
+            .layer {
+                padding: 11px 16px;
+                border-radius: 8px;
+                border-left: 4px solid;
+                background: #fff;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .layer.dim {
+                opacity: 0.35;
+                filter: grayscale(0.4);
+            }
+            .layer-icon {
+                font-size: 18px;
+                width: 28px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+            .layer-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .layer-name {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--ink);
+                margin-bottom: 1px;
+            }
+            .layer-desc {
+                font-size: 11px;
+                color: var(--muted);
+                line-height: 1.35;
+            }
+            .layer-tok {
+                font-size: 10px;
+                font-family: "Fira Code", monospace;
+                color: var(--muted);
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
 
-/* Latency chart */
-.chart-row{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:20px}
-.chart-bar{flex:1;max-width:50px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.bar-fill{width:100%;border-radius:4px 4px 0 0;transition:height .8s cubic-bezier(.4,0,.2,1);
-  position:relative}
-.bar-fill .val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);
-  font-size:10px;font-family:'Fira Code',monospace;color:var(--muted)}
-.bar-label{font-size:10px;color:var(--muted);font-weight:500}
+            /* Latency chart */
+            .chart-row {
+                display: flex;
+                align-items: flex-end;
+                gap: 8px;
+                height: 160px;
+                padding-top: 20px;
+            }
+            .chart-bar {
+                flex: 1;
+                max-width: 50px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+            }
+            .bar-fill {
+                width: 100%;
+                border-radius: 4px 4px 0 0;
+                transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+            }
+            .bar-fill .val {
+                position: absolute;
+                top: -18px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 10px;
+                font-family: "Fira Code", monospace;
+                color: var(--muted);
+            }
+            .bar-label {
+                font-size: 10px;
+                color: var(--muted);
+                font-weight: 500;
+            }
 
-/* SVG flow accents */
-.flow-arrow{stroke:var(--muted);stroke-width:1.5;fill:none;marker-end:url(#arrM)}
-.flow-arrow.active{stroke:var(--c-user);stroke-width:2;}
+            /* SVG flow accents */
+            .flow-arrow {
+                stroke: var(--muted);
+                stroke-width: 1.5;
+                fill: none;
+                marker-end: url(#arrM);
+            }
+            .flow-arrow.active {
+                stroke: var(--c-user);
+                stroke-width: 2;
+            }
 
-/* Dashed cache marker */
-.cache-mark{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;
-  font-weight:600;color:var(--c-cache);background:#EDEAE3;padding:1px 6px;border-radius:8px;
-  border:1px dashed #BBB6AC}
+            /* Dashed cache marker */
+            .cache-mark {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 9.5px;
+                font-weight: 600;
+                color: var(--c-cache);
+                background: #edeae3;
+                padding: 1px 6px;
+                border-radius: 8px;
+                border: 1px dashed #bbb6ac;
+            }
 
-/* ENDING */
-.outro{height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;
-  gap:28px;padding:60px 24px;text-align:center}
-.outro h2{font-size:clamp(28px,3.5vw,44px);font-weight:800;line-height:1.1;
-  max-width:22ch;letter-spacing:-.015em;text-wrap:balance}
-.outro .key{font-size:18px;color:var(--muted);max-width:50ch;line-height:1.55}
+            /* ENDING */
+            .outro {
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 28px;
+                padding: 60px 24px;
+                text-align: center;
+            }
+            .outro h2 {
+                font-size: clamp(28px, 3.5vw, 44px);
+                font-weight: 800;
+                line-height: 1.1;
+                max-width: 22ch;
+                letter-spacing: -0.015em;
+                text-wrap: balance;
+            }
+            .outro .key {
+                font-size: 18px;
+                color: var(--muted);
+                max-width: 50ch;
+                line-height: 1.55;
+            }
 
-/* Recap diagram */
-.recap-wrap{padding:16px 0;display:flex;flex-direction:column;gap:8px;width:100%;max-width:500px}
+            /* Recap diagram */
+            .recap-wrap {
+                padding: 16px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+                max-width: 500px;
+            }
 
-/* helpers */
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(37,87,194,0)}50%{box-shadow:0 0 0 6px rgba(37,87,194,.15)}}
-.pulse{animation:pulse 1.6s ease-in-out infinite}
+            /* helpers */
+            @keyframes pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 0 0 rgba(37, 87, 194, 0);
+                }
+                50% {
+                    box-shadow: 0 0 0 6px rgba(37, 87, 194, 0.15);
+                }
+            }
+            .pulse {
+                animation: pulse 1.6s ease-in-out infinite;
+            }
 
-/* Responsive: stack on small */
-@media (max-width:900px){
-  .act-inner{grid-template-columns:1fr;height:auto;min-height:100vh;padding:80px 0}
-  .act-text{padding:30px 24px;justify-self:stretch;max-width:none}
-  .act-stage{padding:30px 24px;height:auto;min-height:60vh}
-  .rail{display:none}
-}
-</style>
-</head>
-<body>
-<div id="root"></div>
-<script type="text/babel">
+            /* Responsive: stack on small */
+            @media (max-width: 900px) {
+                .act-inner {
+                    grid-template-columns: 1fr;
+                    height: auto;
+                    min-height: 100vh;
+                    padding: 80px 0;
+                }
+                .act-text {
+                    padding: 30px 24px;
+                    justify-self: stretch;
+                    max-width: none;
+                }
+                .act-stage {
+                    padding: 30px 24px;
+                    height: auto;
+                    min-height: 60vh;
+                }
+                .rail {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="text/babel">
+            const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-const { useState, useEffect, useRef, useMemo, useCallback } = React;
+            /* ─── Hook: scroll progress within element [0..1] mapped to visible region ─── */
+            function useScrollProgress(ref) {
+                const [p, setP] = useState(0);
+                useEffect(() => {
+                    const tick = () => {
+                        if (!ref.current) return;
+                        const r = ref.current.getBoundingClientRect();
+                        const wh = window.innerHeight;
+                        // progress is 0 when section enters bottom, 1 when section's bottom hits top
+                        const total = r.height - wh;
+                        if (total <= 0) {
+                            setP(r.top < 0 ? 1 : 0);
+                            return;
+                        }
+                        const scrolled = -r.top;
+                        setP(Math.max(0, Math.min(1, scrolled / total)));
+                    };
+                    tick();
+                    window.addEventListener("scroll", tick, { passive: true });
+                    window.addEventListener("resize", tick);
+                    return () => {
+                        window.removeEventListener("scroll", tick);
+                        window.removeEventListener("resize", tick);
+                    };
+                }, []);
+                return p;
+            }
 
-/* ─── Hook: scroll progress within element [0..1] mapped to visible region ─── */
-function useScrollProgress(ref) {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const tick = () => {
-      if (!ref.current) return;
-      const r = ref.current.getBoundingClientRect();
-      const wh = window.innerHeight;
-      // progress is 0 when section enters bottom, 1 when section's bottom hits top
-      const total = r.height - wh;
-      if (total <= 0) { setP(r.top < 0 ? 1 : 0); return; }
-      const scrolled = -r.top;
-      setP(Math.max(0, Math.min(1, scrolled / total)));
-    };
-    tick();
-    window.addEventListener('scroll', tick, { passive: true });
-    window.addEventListener('resize', tick);
-    return () => { window.removeEventListener('scroll', tick); window.removeEventListener('resize', tick); };
-  }, []);
-  return p;
-}
+            /* ─── Hook: which act is currently dominant in viewport ─── */
+            function useActiveAct(actIds) {
+                const [active, setActive] = useState(0);
+                useEffect(() => {
+                    const tick = () => {
+                        const mid = window.innerHeight / 2;
+                        let best = 0,
+                            bestDist = Infinity;
+                        actIds.forEach((id, i) => {
+                            const el = document.getElementById(id);
+                            if (!el) return;
+                            const r = el.getBoundingClientRect();
+                            const center = r.top + r.height / 2;
+                            const dist = Math.abs(center - mid);
+                            if (r.top < mid && r.bottom > mid) {
+                                if (dist < bestDist) {
+                                    bestDist = dist;
+                                    best = i;
+                                }
+                            }
+                        });
+                        setActive(best);
+                    };
+                    tick();
+                    window.addEventListener("scroll", tick, { passive: true });
+                    return () => window.removeEventListener("scroll", tick);
+                }, [actIds]);
+                return active;
+            }
 
-/* ─── Hook: which act is currently dominant in viewport ─── */
-function useActiveAct(actIds) {
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const tick = () => {
-      const mid = window.innerHeight / 2;
-      let best = 0, bestDist = Infinity;
-      actIds.forEach((id, i) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const center = r.top + r.height / 2;
-        const dist = Math.abs(center - mid);
-        if (r.top < mid && r.bottom > mid) {
-          if (dist < bestDist) { bestDist = dist; best = i; }
-        }
-      });
-      setActive(best);
-    };
-    tick();
-    window.addEventListener('scroll', tick, { passive: true });
-    return () => window.removeEventListener('scroll', tick);
-  }, [actIds]);
-  return active;
-}
+            /* ─── interpolate helper ─── */
+            const lerp = (a, b, t) => a + (b - a) * t;
+            const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+            const seg = (p, s, e) => clamp((p - s) / (e - s));
 
-/* ─── interpolate helper ─── */
-const lerp = (a, b, t) => a + (b - a) * t;
-const clamp = (v, a=0, b=1) => Math.max(a, Math.min(b, v));
-const seg = (p, s, e) => clamp((p - s) / (e - s));
-
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 1 — Text in / text out
 ═══════════════════════════════════════════════ */
-function Act1() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  // 0..0.3: input slides in; 0.3..0.6: tokens flow through; 0.6..1: output appears
-  const inputX = lerp(40, 0, seg(p, 0, .25));
-  const outputOpacity = seg(p, .55, .85);
-  const tokenCount = Math.floor(seg(p, .35, .85) * 8);
-  const aiTokens = ['Bonjour', '!', 'C\'est', 'un', 'sujet', 'que', 'j\'adore', '...'];
+            function Act1() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                // 0..0.3: input slides in; 0.3..0.6: tokens flow through; 0.6..1: output appears
+                const inputX = lerp(40, 0, seg(p, 0, 0.25));
+                const outputOpacity = seg(p, 0.55, 0.85);
+                const tokenCount = Math.floor(seg(p, 0.35, 0.85) * 8);
+                const aiTokens = [
+                    "Bonjour",
+                    "!",
+                    "C'est",
+                    "un",
+                    "sujet",
+                    "que",
+                    "j'adore",
+                    "...",
+                ];
 
-  return (
-    <section ref={ref} id="act1" className="act" style={{height:'200vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--ink)'}}>1</span>
-            Le principe fondamental
-          </div>
-          <h2>Un LLM, c'est juste une fonction. Du texte entre, du texte sort.</h2>
-          <p className="act-lede">Pas de mémoire. Pas d'agent qui réfléchit en permanence. Juste un programme qui prend du texte, et qui prédit la suite.</p>
-          <p className="act-lede">Token après token. Le mot le plus probable, puis le suivant, puis le suivant.</p>
-          <div className="act-note"><strong>À retenir :</strong> tout ce qui suit n'est qu'une variation autour de cette idée. <em>Text in → text out.</em></div>
-        </div>
-        <div className="act-stage">
-          <div style={{display:'flex',alignItems:'center',gap:38,opacity:1}}>
-            <div style={{transform:`translateX(${inputX}px)`,opacity:1-seg(p,.85,1)*.4,transition:'opacity .2s'}}>
-              <div style={{fontSize:10,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',
-                color:'var(--muted)',marginBottom:8}}>Entrée</div>
-              <div style={{display:'flex',flexWrap:'wrap',maxWidth:200}}>
-                {['Parle','-','moi','de','la','Révolution','française','.'].map((t,i)=>(
-                  <span key={i} className="tok user">{t}</span>
-                ))}
-              </div>
-            </div>
-            <div className="fn-box tall" style={{position:'relative'}}>
-              <div className="icon">📦</div>
-              <div className="label">Fonction</div>
-              <div className="name">LLM</div>
-              {/* Flowing dots */}
-              {p > .25 && p < .85 && (
-                <svg width="80" height="20" style={{position:'absolute',left:'100%',top:'50%',marginTop:-10,marginLeft:-2}}>
-                  {[0,1,2].map(i=>(
-                    <circle key={i} cx={10+i*25} cy={10} r="3" fill="var(--c-ai)"
-                      opacity={0.3+0.3*Math.sin((p*10+i)*Math.PI)}/>
-                  ))}
-                </svg>
-              )}
-            </div>
-            <div style={{opacity:outputOpacity,minWidth:200}}>
-              <div style={{fontSize:10,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',
-                color:'var(--muted)',marginBottom:8}}>Sortie · token par token</div>
-              <div style={{display:'flex',flexWrap:'wrap',maxWidth:240}}>
-                {aiTokens.slice(0, tokenCount).map((t,i)=>(
-                  <span key={i} className="tok ai">{t}</span>
-                ))}
-                {tokenCount < aiTokens.length && (
-                  <span style={{display:'inline-block',width:2,height:14,background:'var(--c-ai)',
-                    marginLeft:2,verticalAlign:'middle',animation:'hereflow .8s infinite'}}/>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                return (
+                    <section
+                        ref={ref}
+                        id="act1"
+                        className="act"
+                        style={{ height: "200vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{ background: "var(--ink)" }}
+                                    >
+                                        1
+                                    </span>
+                                    Le principe fondamental
+                                </div>
+                                <h2>
+                                    Un LLM, c'est juste une fonction. Du texte
+                                    entre, du texte sort.
+                                </h2>
+                                <p className="act-lede">
+                                    Pas de mémoire. Pas d'agent qui réfléchit en
+                                    permanence. Juste un programme qui prend du
+                                    texte, et qui prédit la suite.
+                                </p>
+                                <p className="act-lede">
+                                    Token après token. Le mot le plus probable,
+                                    puis le suivant, puis le suivant.
+                                </p>
+                                <div className="act-note">
+                                    <strong>À retenir :</strong> tout ce qui
+                                    suit n'est qu'une variation autour de cette
+                                    idée. <em>Text in → text out.</em>
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 38,
+                                        opacity: 1,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            transform: `translateX(${inputX}px)`,
+                                            opacity: 1 - seg(p, 0.85, 1) * 0.4,
+                                            transition: "opacity .2s",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                fontWeight: 700,
+                                                letterSpacing: ".12em",
+                                                textTransform: "uppercase",
+                                                color: "var(--muted)",
+                                                marginBottom: 8,
+                                            }}
+                                        >
+                                            Entrée
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                maxWidth: 200,
+                                            }}
+                                        >
+                                            {[
+                                                "Parle",
+                                                "-",
+                                                "moi",
+                                                "de",
+                                                "la",
+                                                "Révolution",
+                                                "française",
+                                                ".",
+                                            ].map((t, i) => (
+                                                <span
+                                                    key={i}
+                                                    className="tok user"
+                                                >
+                                                    {t}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="fn-box tall"
+                                        style={{ position: "relative" }}
+                                    >
+                                        <div className="icon">📦</div>
+                                        <div className="label">Fonction</div>
+                                        <div className="name">LLM</div>
+                                        {/* Flowing dots */}
+                                        {p > 0.25 && p < 0.85 && (
+                                            <svg
+                                                width="80"
+                                                height="20"
+                                                style={{
+                                                    position: "absolute",
+                                                    left: "100%",
+                                                    top: "50%",
+                                                    marginTop: -10,
+                                                    marginLeft: -2,
+                                                }}
+                                            >
+                                                {[0, 1, 2].map((i) => (
+                                                    <circle
+                                                        key={i}
+                                                        cx={10 + i * 25}
+                                                        cy={10}
+                                                        r="3"
+                                                        fill="var(--c-ai)"
+                                                        opacity={
+                                                            0.3 +
+                                                            0.3 *
+                                                                Math.sin(
+                                                                    (p * 10 +
+                                                                        i) *
+                                                                        Math.PI,
+                                                                )
+                                                        }
+                                                    />
+                                                ))}
+                                            </svg>
+                                        )}
+                                    </div>
+                                    <div
+                                        style={{
+                                            opacity: outputOpacity,
+                                            minWidth: 200,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                fontWeight: 700,
+                                                letterSpacing: ".12em",
+                                                textTransform: "uppercase",
+                                                color: "var(--muted)",
+                                                marginBottom: 8,
+                                            }}
+                                        >
+                                            Sortie · token par token
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                maxWidth: 240,
+                                            }}
+                                        >
+                                            {aiTokens
+                                                .slice(0, tokenCount)
+                                                .map((t, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className="tok ai"
+                                                    >
+                                                        {t}
+                                                    </span>
+                                                ))}
+                                            {tokenCount < aiTokens.length && (
+                                                <span
+                                                    style={{
+                                                        display: "inline-block",
+                                                        width: 2,
+                                                        height: 14,
+                                                        background:
+                                                            "var(--c-ai)",
+                                                        marginLeft: 2,
+                                                        verticalAlign: "middle",
+                                                        animation:
+                                                            "hereflow .8s infinite",
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 2 — Conversation as illusion
 ═══════════════════════════════════════════════ */
-function Act2() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  // Three turns, each turn the whole stack passes through
-  const turn = p < .33 ? 1 : p < .66 ? 2 : 3;
-  const flowing = (p > .12 && p < .25) || (p > .45 && p < .58) || (p > .78 && p < .91);
+            function Act2() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                // Three turns, each turn the whole stack passes through
+                const turn = p < 0.33 ? 1 : p < 0.66 ? 2 : 3;
+                const flowing =
+                    (p > 0.12 && p < 0.25) ||
+                    (p > 0.45 && p < 0.58) ||
+                    (p > 0.78 && p < 0.91);
 
-  const turns = [
-    [{r:'user', t:'Bonjour ! Aide-moi en histoire.', tok:8}],
-    [{r:'user', t:'Bonjour ! Aide-moi en histoire.', tok:8},
-     {r:'ai',   t:'Bien sûr ! Quelle période ?', tok:7},
-     {r:'user', t:'La Révolution française.', tok:5}],
-    [{r:'user', t:'Bonjour ! Aide-moi en histoire.', tok:8},
-     {r:'ai',   t:'Bien sûr ! Quelle période ?', tok:7},
-     {r:'user', t:'La Révolution française.', tok:5},
-     {r:'ai',   t:'Excellente idée. Que veux-tu savoir ?', tok:8},
-     {r:'user', t:'Les causes principales ?', tok:5}],
-  ];
-  const total = turns[turn-1].reduce((s,m)=>s+m.tok, 0);
+                const turns = [
+                    [
+                        {
+                            r: "user",
+                            t: "Bonjour ! Aide-moi en histoire.",
+                            tok: 8,
+                        },
+                    ],
+                    [
+                        {
+                            r: "user",
+                            t: "Bonjour ! Aide-moi en histoire.",
+                            tok: 8,
+                        },
+                        { r: "ai", t: "Bien sûr ! Quelle période ?", tok: 7 },
+                        { r: "user", t: "La Révolution française.", tok: 5 },
+                    ],
+                    [
+                        {
+                            r: "user",
+                            t: "Bonjour ! Aide-moi en histoire.",
+                            tok: 8,
+                        },
+                        { r: "ai", t: "Bien sûr ! Quelle période ?", tok: 7 },
+                        { r: "user", t: "La Révolution française.", tok: 5 },
+                        {
+                            r: "ai",
+                            t: "Excellente idée. Que veux-tu savoir ?",
+                            tok: 8,
+                        },
+                        { r: "user", t: "Les causes principales ?", tok: 5 },
+                    ],
+                ];
+                const total = turns[turn - 1].reduce((s, m) => s + m.tok, 0);
 
-  return (
-    <section ref={ref} id="act2" className="act" style={{height:'250vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-user)'}}>2</span>
-            La conversation est une illusion
-          </div>
-          <h2>À chaque tour, on renvoie <em>tout</em> depuis le début.</h2>
-          <p className="act-lede">Le LLM n'a pas de mémoire propre. Quand tu envoies ton 3<sup>ème</sup> message, l'application renvoie au modèle <strong>les 5 messages précédents + le tien</strong>. Tout. Depuis le début.</p>
-          <p className="act-lede">Le modèle relit l'intégralité, puis prédit la suite.</p>
-          <div className="act-note">Conséquence directe : <strong>plus la conversation est longue, plus c'est long et coûteux.</strong> Chaque tour = relire toute l'histoire.</div>
-        </div>
-        <div className="act-stage">
-          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:14,width:'100%',maxWidth:480}}>
-            <div style={{fontSize:11,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--muted)',
-              fontWeight:700}}>Tour {turn}</div>
-            <div className="paper" style={{width:'100%',transform:flowing?'translateY(6px)':'none',
-              transition:'transform .3s'}}>
-              {turns[turn-1].map((m,i)=>(
-                <div key={i} className="paper-row" style={{
-                  borderLeftColor: m.r==='user'?'var(--c-user)':'var(--c-ai)',
-                }}>
-                  <div className="row-head">
-                    <span className="row-badge" style={{background: m.r==='user'?'var(--c-user)':'var(--c-ai)'}}>
-                      {m.r==='user'?'Toi':'IA'}
-                    </span>
-                    <span className="row-meta">{m.tok} tokens</span>
-                  </div>
-                  <div className="row-text normal">{m.t}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:'flex',alignItems:'center',gap:10,marginTop:6}}>
-              <div style={{width:1,height:20,background: flowing?'var(--c-user)':'#D8D2C8'}}/>
-            </div>
-            <div className="fn-box" style={{borderColor: flowing?'var(--c-user)':'var(--ink)',
-              boxShadow: flowing?'0 0 0 4px rgba(37,87,194,.12), 0 4px 20px rgba(0,0,0,.06)':'0 4px 20px rgba(0,0,0,.06)'}}>
-              <div style={{fontSize:10,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',
-                color:'var(--muted)',marginBottom:4}}>relit {total} tokens</div>
-              <div className="name">LLM</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                return (
+                    <section
+                        ref={ref}
+                        id="act2"
+                        className="act"
+                        style={{ height: "250vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{ background: "var(--c-user)" }}
+                                    >
+                                        2
+                                    </span>
+                                    La conversation est une illusion
+                                </div>
+                                <h2>
+                                    À chaque tour, on renvoie <em>tout</em>{" "}
+                                    depuis le début.
+                                </h2>
+                                <p className="act-lede">
+                                    Le LLM n'a pas de mémoire propre. Quand tu
+                                    envoies ton 3<sup>ème</sup> message,
+                                    l'application renvoie au modèle{" "}
+                                    <strong>
+                                        les 5 messages précédents + le tien
+                                    </strong>
+                                    . Tout. Depuis le début.
+                                </p>
+                                <p className="act-lede">
+                                    Le modèle relit l'intégralité, puis prédit
+                                    la suite.
+                                </p>
+                                <div className="act-note">
+                                    Conséquence directe :{" "}
+                                    <strong>
+                                        plus la conversation est longue, plus
+                                        c'est long et coûteux.
+                                    </strong>{" "}
+                                    Chaque tour = relire toute l'histoire.
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 14,
+                                        width: "100%",
+                                        maxWidth: 480,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            letterSpacing: ".1em",
+                                            textTransform: "uppercase",
+                                            color: "var(--muted)",
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        Tour {turn}
+                                    </div>
+                                    <div
+                                        className="paper"
+                                        style={{
+                                            width: "100%",
+                                            transform: flowing
+                                                ? "translateY(6px)"
+                                                : "none",
+                                            transition: "transform .3s",
+                                        }}
+                                    >
+                                        {turns[turn - 1].map((m, i) => (
+                                            <div
+                                                key={i}
+                                                className="paper-row"
+                                                style={{
+                                                    borderLeftColor:
+                                                        m.r === "user"
+                                                            ? "var(--c-user)"
+                                                            : "var(--c-ai)",
+                                                }}
+                                            >
+                                                <div className="row-head">
+                                                    <span
+                                                        className="row-badge"
+                                                        style={{
+                                                            background:
+                                                                m.r === "user"
+                                                                    ? "var(--c-user)"
+                                                                    : "var(--c-ai)",
+                                                        }}
+                                                    >
+                                                        {m.r === "user"
+                                                            ? "Toi"
+                                                            : "IA"}
+                                                    </span>
+                                                    <span className="row-meta">
+                                                        {m.tok} tokens
+                                                    </span>
+                                                </div>
+                                                <div className="row-text normal">
+                                                    {m.t}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 10,
+                                            marginTop: 6,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: 1,
+                                                height: 20,
+                                                background: flowing
+                                                    ? "var(--c-user)"
+                                                    : "#D8D2C8",
+                                            }}
+                                        />
+                                    </div>
+                                    <div
+                                        className="fn-box"
+                                        style={{
+                                            borderColor: flowing
+                                                ? "var(--c-user)"
+                                                : "var(--ink)",
+                                            boxShadow: flowing
+                                                ? "0 0 0 4px rgba(37,87,194,.12), 0 4px 20px rgba(0,0,0,.06)"
+                                                : "0 4px 20px rgba(0,0,0,.06)",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                fontWeight: 700,
+                                                letterSpacing: ".12em",
+                                                textTransform: "uppercase",
+                                                color: "var(--muted)",
+                                                marginBottom: 4,
+                                            }}
+                                        >
+                                            relit {total} tokens
+                                        </div>
+                                        <div className="name">LLM</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 3 — Caching
 ═══════════════════════════════════════════════ */
-function Act3() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  // First half: latency chart grows. Second half: cache reveal — bars shrink.
-  const t1 = seg(p, 0, .45);
-  const t2 = seg(p, .55, 1);
-  const cached = t2 > 0;
+            function Act3() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                // First half: latency chart grows. Second half: cache reveal — bars shrink.
+                const t1 = seg(p, 0, 0.45);
+                const t2 = seg(p, 0.55, 1);
+                const cached = t2 > 0;
 
-  const turns = [1,2,3,4,5];
-  const noCacheLatency = turns.map(n => 0.3 + n * 0.25);  // grows linearly
-  const cachedLatency  = turns.map((n,i) => i===0 ? noCacheLatency[0] : 0.35 + 0.05 * n);
-
-  return (
-    <section ref={ref} id="act3" className="act" style={{height:'200vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-cache)'}}>3</span>
-            L'astuce du caching
-          </div>
-          <h2>« Mais en vrai, ce n'est pas <em>si</em> lent que ça… »</h2>
-          <p className="act-lede">Si on relisait vraiment tout à chaque tour, les conversations longues seraient insupportables. Heureusement, il y a une astuce.</p>
-          <p className="act-lede"><strong>Le prompt caching</strong> : la partie déjà traitée d'un tour précédent est mise en cache. Le modèle peut la réutiliser sans tout recalculer.</p>
-          <div className="act-note">Seul <strong>le nouveau bout</strong> est vraiment traité. C'est pour ça qu'à part le tout premier message, la latence reste à peu près constante.</div>
-        </div>
-        <div className="act-stage">
-          <div style={{width:'100%',maxWidth:380,display:'flex',flexDirection:'column',gap:20}}>
-            <div style={{fontSize:11,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--muted)',
-              fontWeight:700,textAlign:'center'}}>Latence par tour</div>
-            <div className="chart-row">
-              {turns.map((n,i)=>{
-                const target = cached ? cachedLatency[i] : noCacheLatency[i];
-                const grown = lerp(0, target, cached ? 1 : t1);
-                const h = Math.round(grown * 100);
-                return (
-                  <div key={i} className="chart-bar">
-                    <div className="bar-fill" style={{
-                      height: `${h}%`,
-                      background: cached ? (i===0?'#999':'var(--c-cache)') : 'var(--c-user)',
-                      opacity: cached && i>0 ? 0.7 : 1,
-                    }}>
-                      <span className="val">{Math.round(target*1000)}ms</span>
-                    </div>
-                    <div className="bar-label">T{n}</div>
-                  </div>
+                const turns = [1, 2, 3, 4, 5];
+                const noCacheLatency = turns.map((n) => 0.3 + n * 0.25); // grows linearly
+                const cachedLatency = turns.map((n, i) =>
+                    i === 0 ? noCacheLatency[0] : 0.35 + 0.05 * n,
                 );
-              })}
-            </div>
-            {/* Legend / paper with cached blocks */}
-            <div className="paper" style={{padding:0,marginTop:10,opacity: cached?1:.5,transition:'opacity .4s'}}>
-              {[
-                {r:'cached',l:'Tour 1 (cached)',c:'#888'},
-                {r:'cached',l:'Tour 2 (cached)',c:'#888'},
-                {r:'user',  l:'Tour 3 — nouveau',c:'var(--c-user)'},
-              ].map((x,i)=>(
-                <div key={i} className="paper-row" style={{borderLeftColor:x.c}}>
-                  <div className="row-head">
-                    <span className="row-badge" style={{background:x.c}}>{x.l}</span>
-                    {x.r==='cached' && (
-                      <span className="cache-mark">✓ déjà calculé</span>
-                    )}
-                    {x.r!=='cached' && (
-                      <span className="row-meta">à calculer</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
-/* ════════════════════════════════════════════════
+                return (
+                    <section
+                        ref={ref}
+                        id="act3"
+                        className="act"
+                        style={{ height: "200vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{ background: "var(--c-cache)" }}
+                                    >
+                                        3
+                                    </span>
+                                    L'astuce du caching
+                                </div>
+                                <h2>
+                                    « Mais en vrai, ce n'est pas <em>si</em>{" "}
+                                    lent que ça… »
+                                </h2>
+                                <p className="act-lede">
+                                    Si on relisait vraiment tout à chaque tour,
+                                    les conversations longues seraient
+                                    insupportables. Heureusement, il y a une
+                                    astuce.
+                                </p>
+                                <p className="act-lede">
+                                    <strong>Le prompt caching</strong> : la
+                                    partie déjà traitée d'un tour précédent est
+                                    mise en cache. Le modèle peut la réutiliser
+                                    sans tout recalculer.
+                                </p>
+                                <div className="act-note">
+                                    Seul <strong>le nouveau bout</strong> est
+                                    vraiment traité. C'est pour ça qu'à part le
+                                    tout premier message, la latence reste à peu
+                                    près constante.
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        width: "100%",
+                                        maxWidth: 380,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 20,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            letterSpacing: ".1em",
+                                            textTransform: "uppercase",
+                                            color: "var(--muted)",
+                                            fontWeight: 700,
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        Latence par tour
+                                    </div>
+                                    <div className="chart-row">
+                                        {turns.map((n, i) => {
+                                            const target = cached
+                                                ? cachedLatency[i]
+                                                : noCacheLatency[i];
+                                            const grown = lerp(
+                                                0,
+                                                target,
+                                                cached ? 1 : t1,
+                                            );
+                                            const h = Math.round(grown * 100);
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="chart-bar"
+                                                >
+                                                    <div
+                                                        className="bar-fill"
+                                                        style={{
+                                                            height: `${h}%`,
+                                                            background: cached
+                                                                ? i === 0
+                                                                    ? "#999"
+                                                                    : "var(--c-cache)"
+                                                                : "var(--c-user)",
+                                                            opacity:
+                                                                cached && i > 0
+                                                                    ? 0.7
+                                                                    : 1,
+                                                        }}
+                                                    >
+                                                        <span className="val">
+                                                            {Math.round(
+                                                                target * 1000,
+                                                            )}
+                                                            ms
+                                                        </span>
+                                                    </div>
+                                                    <div className="bar-label">
+                                                        T{n}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {/* Legend / paper with cached blocks */}
+                                    <div
+                                        className="paper"
+                                        style={{
+                                            padding: 0,
+                                            marginTop: 10,
+                                            opacity: cached ? 1 : 0.5,
+                                            transition: "opacity .4s",
+                                        }}
+                                    >
+                                        {[
+                                            {
+                                                r: "cached",
+                                                l: "Tour 1 (cached)",
+                                                c: "#888",
+                                            },
+                                            {
+                                                r: "cached",
+                                                l: "Tour 2 (cached)",
+                                                c: "#888",
+                                            },
+                                            {
+                                                r: "user",
+                                                l: "Tour 3 — nouveau",
+                                                c: "var(--c-user)",
+                                            },
+                                        ].map((x, i) => (
+                                            <div
+                                                key={i}
+                                                className="paper-row"
+                                                style={{ borderLeftColor: x.c }}
+                                            >
+                                                <div className="row-head">
+                                                    <span
+                                                        className="row-badge"
+                                                        style={{
+                                                            background: x.c,
+                                                        }}
+                                                    >
+                                                        {x.l}
+                                                    </span>
+                                                    {x.r === "cached" && (
+                                                        <span className="cache-mark">
+                                                            ✓ déjà calculé
+                                                        </span>
+                                                    )}
+                                                    {x.r !== "cached" && (
+                                                        <span className="row-meta">
+                                                            à calculer
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
+
+            /* ════════════════════════════════════════════════
    ACT 4 — Layers of context
 ═══════════════════════════════════════════════ */
-function Act4() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  // Reveal layers one by one
-  const visibleLayers = Math.min(5, Math.floor(p * 6));
+            function Act4() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                // Reveal layers one by one
+                const visibleLayers = Math.min(5, Math.floor(p * 6));
 
-  const layers = [
-    { name:'Prompt système', desc:'Le mode d\'emploi posé par l\'éditeur du LLM. Tu ne le vois jamais. Tu ne peux pas le modifier.',
-      icon:'🔒', color:'var(--c-system)', tok:'~2 000 tok' },
-    { name:'Instructions personnelles', desc:'Tes préférences : ta langue, ton style, ton métier… que tu as configurées une fois.',
-      icon:'⚙', color:'var(--c-perso)', tok:'~300 tok' },
-    { name:'Mémoires & fichiers', desc:'Ce que l\'app a retenu de tes conversations passées, ou les fichiers que tu as joints.',
-      icon:'📎', color:'var(--c-tool)', tok:'~800 tok' },
-    { name:'Historique de la conv', desc:'Tous les tours précédents de cette conversation.',
-      icon:'💬', color:'var(--c-ai)', tok:'~3 200 tok' },
-    { name:'Ton message actuel', desc:'La seule partie que tu viens vraiment d\'écrire.',
-      icon:'✍', color:'var(--c-user)', tok:'42 tok' },
-  ];
+                const layers = [
+                    {
+                        name: "Prompt système",
+                        desc: "Le mode d'emploi posé par l'éditeur du LLM. Tu ne le vois jamais. Tu ne peux pas le modifier.",
+                        icon: "🔒",
+                        color: "var(--c-system)",
+                        tok: "~2 000 tok",
+                    },
+                    {
+                        name: "Instructions personnelles",
+                        desc: "Tes préférences : ta langue, ton style, ton métier… que tu as configurées une fois.",
+                        icon: "⚙",
+                        color: "var(--c-perso)",
+                        tok: "~300 tok",
+                    },
+                    {
+                        name: "Mémoires & fichiers",
+                        desc: "Ce que l'app a retenu de tes conversations passées, ou les fichiers que tu as joints.",
+                        icon: "📎",
+                        color: "var(--c-tool)",
+                        tok: "~800 tok",
+                    },
+                    {
+                        name: "Historique de la conv",
+                        desc: "Tous les tours précédents de cette conversation.",
+                        icon: "💬",
+                        color: "var(--c-ai)",
+                        tok: "~3 200 tok",
+                    },
+                    {
+                        name: "Ton message actuel",
+                        desc: "La seule partie que tu viens vraiment d'écrire.",
+                        icon: "✍",
+                        color: "var(--c-user)",
+                        tok: "42 tok",
+                    },
+                ];
 
-  return (
-    <section ref={ref} id="act4" className="act" style={{height:'250vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-system)'}}>4</span>
-            Ce qu'il y a vraiment dans le contexte
-          </div>
-          <h2>Avant ton message, il y a déjà <em>plein de couches</em>.</h2>
-          <p className="act-lede">Quand tu tapes « bonjour », le modèle reçoit en réalité bien plus que ça. Plusieurs couches de texte se sont déjà empilées avant ton message.</p>
-          <p className="act-lede">Toutes ces couches partent dans la fonction. Toutes consomment du contexte.</p>
-          <div className="act-note">C'est pour ça qu'un LLM peut sembler te « connaître » — alors qu'en réalité, tout est juste écrit, à chaque fois, dans le texte qu'on lui envoie.</div>
-        </div>
-        <div className="act-stage">
-          <div className="layer-stack">
-            {layers.map((L,i)=>(
-              <div key={i} className={`layer${i>=visibleLayers?' dim':''}`}
-                style={{borderLeftColor:L.color,
-                  transform: i<visibleLayers ? 'translateY(0)' : 'translateY(8px)'}}>
-                <div className="layer-icon" style={{color:L.color}}>{L.icon}</div>
-                <div className="layer-info">
-                  <div className="layer-name">{L.name}</div>
-                  <div className="layer-desc">{L.desc}</div>
-                </div>
-                <div className="layer-tok" style={{color:L.color,fontWeight:600}}>{L.tok}</div>
-              </div>
-            ))}
-            {visibleLayers >= 5 && (
-              <div style={{marginTop:10,padding:'10px 16px',background:'rgba(0,0,0,.04)',
-                borderRadius:8,fontSize:12,color:'var(--ink)',textAlign:'center'}}>
-                Total : <strong style={{fontFamily:'Fira Code',fontSize:14}}>~6 342 tokens</strong> envoyés au modèle
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                return (
+                    <section
+                        ref={ref}
+                        id="act4"
+                        className="act"
+                        style={{ height: "250vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{
+                                            background: "var(--c-system)",
+                                        }}
+                                    >
+                                        4
+                                    </span>
+                                    Ce qu'il y a vraiment dans le contexte
+                                </div>
+                                <h2>
+                                    Avant ton message, il y a déjà{" "}
+                                    <em>plein de couches</em>.
+                                </h2>
+                                <p className="act-lede">
+                                    Quand tu tapes « bonjour », le modèle reçoit
+                                    en réalité bien plus que ça. Plusieurs
+                                    couches de texte se sont déjà empilées avant
+                                    ton message.
+                                </p>
+                                <p className="act-lede">
+                                    Toutes ces couches partent dans la fonction.
+                                    Toutes consomment du contexte.
+                                </p>
+                                <div className="act-note">
+                                    C'est pour ça qu'un LLM peut sembler te «
+                                    connaître » — alors qu'en réalité, tout est
+                                    juste écrit, à chaque fois, dans le texte
+                                    qu'on lui envoie.
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div className="layer-stack">
+                                    {layers.map((L, i) => (
+                                        <div
+                                            key={i}
+                                            className={`layer${i >= visibleLayers ? " dim" : ""}`}
+                                            style={{
+                                                borderLeftColor: L.color,
+                                                transform:
+                                                    i < visibleLayers
+                                                        ? "translateY(0)"
+                                                        : "translateY(8px)",
+                                            }}
+                                        >
+                                            <div
+                                                className="layer-icon"
+                                                style={{ color: L.color }}
+                                            >
+                                                {L.icon}
+                                            </div>
+                                            <div className="layer-info">
+                                                <div className="layer-name">
+                                                    {L.name}
+                                                </div>
+                                                <div className="layer-desc">
+                                                    {L.desc}
+                                                </div>
+                                            </div>
+                                            <div
+                                                className="layer-tok"
+                                                style={{
+                                                    color: L.color,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                {L.tok}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {visibleLayers >= 5 && (
+                                        <div
+                                            style={{
+                                                marginTop: 10,
+                                                padding: "10px 16px",
+                                                background: "rgba(0,0,0,.04)",
+                                                borderRadius: 8,
+                                                fontSize: 12,
+                                                color: "var(--ink)",
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            Total :{" "}
+                                            <strong
+                                                style={{
+                                                    fontFamily: "Fira Code",
+                                                    fontSize: 14,
+                                                }}
+                                            >
+                                                ~6 342 tokens
+                                            </strong>{" "}
+                                            envoyés au modèle
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 5 — Thinking
 ═══════════════════════════════════════════════ */
-function Act5() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  const t1 = seg(p, .15, .55); // brouillon apparaît
-  const t2 = seg(p, .55, .85); // hidden
-  const showResp = p > .75;
+            function Act5() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                const t1 = seg(p, 0.15, 0.55); // brouillon apparaît
+                const t2 = seg(p, 0.55, 0.85); // hidden
+                const showResp = p > 0.75;
 
-  const thinkingTokens = ['Question', 'complexe', '.', 'Je', 'devrais', 'd\'abord',
-    'lister', 'les', 'causes', ',', 'puis', 'les', 'classer', '.', 'Format', '?', 'Liste'];
-  const respTokens = ['Quatre', 'grandes', 'causes', ':', '1', ')', 'inégalités', '...'];
+                const thinkingTokens = [
+                    "Question",
+                    "complexe",
+                    ".",
+                    "Je",
+                    "devrais",
+                    "d'abord",
+                    "lister",
+                    "les",
+                    "causes",
+                    ",",
+                    "puis",
+                    "les",
+                    "classer",
+                    ".",
+                    "Format",
+                    "?",
+                    "Liste",
+                ];
+                const respTokens = [
+                    "Quatre",
+                    "grandes",
+                    "causes",
+                    ":",
+                    "1",
+                    ")",
+                    "inégalités",
+                    "...",
+                ];
 
-  return (
-    <section ref={ref} id="act5" className="act" style={{height:'200vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-think)'}}>5</span>
-            Le thinking, ou « brouillon interne »
-          </div>
-          <h2>Le modèle peut s'autoriser à <em>réfléchir</em> avant de répondre.</h2>
-          <p className="act-lede">Sur les questions complexes, le LLM peut écrire un brouillon — explorer, douter, structurer ses idées — avant de produire la vraie réponse.</p>
-          <p className="act-lede">Ce brouillon est <strong>généré comme du texte normal</strong>, mais l'application le masque à l'écran. Il reste néanmoins dans le contexte.</p>
-          <div className="act-note">Plus c'est complexe, plus le modèle « pense longtemps ». Le thinking <strong>consomme du contexte et du temps</strong> — mais améliore beaucoup la qualité.</div>
-        </div>
-        <div className="act-stage">
-          <div style={{display:'flex',flexDirection:'column',gap:14,width:'100%',maxWidth:440,alignItems:'center'}}>
-            {/* Thinking block */}
-            <div style={{width:'100%',padding:14,border:'1.5px dashed var(--c-think)',
-              background:'rgba(128,80,208,.04)',borderRadius:10,
-              opacity: t1, transform:`translateY(${(1-t1)*10}px)`,
-              filter: t2 > 0 ? `opacity(${1-t2*.6})` : 'none'}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                <span style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',
-                  color:'var(--c-think)'}}>💭 Brouillon interne</span>
-                <span style={{fontSize:9,color:'var(--c-think)',opacity:.7,fontStyle:'italic'}}>
-                  {t2 > .3 ? '— masqué pour l\'utilisateur' : ''}
-                </span>
-              </div>
-              <div style={{display:'flex',flexWrap:'wrap'}}>
-                {thinkingTokens.slice(0, Math.floor(t1 * thinkingTokens.length)).map((t,i)=>(
-                  <span key={i} className="tok think">{t}</span>
-                ))}
-              </div>
-            </div>
-            {/* Hidden / arrow */}
-            {t2 > .2 && (
-              <div style={{fontSize:10,color:'var(--muted)',letterSpacing:'.04em',
-                opacity: seg(p,.55,.7)}}>↓ rangé hors-vue · l'utilisateur voit la réponse</div>
-            )}
-            {/* Response */}
-            <div style={{width:'100%',padding:14,border:'1.5px solid var(--c-ai)',
-              background:'rgba(26,123,74,.04)',borderRadius:10,
-              opacity: showResp ? seg(p,.75,.9) : 0}}>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',
-                color:'var(--c-ai)',marginBottom:8}}>Réponse visible</div>
-              <div style={{display:'flex',flexWrap:'wrap'}}>
-                {respTokens.map((t,i)=>(
-                  <span key={i} className="tok ai">{t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                return (
+                    <section
+                        ref={ref}
+                        id="act5"
+                        className="act"
+                        style={{ height: "200vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{ background: "var(--c-think)" }}
+                                    >
+                                        5
+                                    </span>
+                                    Le thinking, ou « brouillon interne »
+                                </div>
+                                <h2>
+                                    Le modèle peut s'autoriser à{" "}
+                                    <em>réfléchir</em> avant de répondre.
+                                </h2>
+                                <p className="act-lede">
+                                    Sur les questions complexes, le LLM peut
+                                    écrire un brouillon — explorer, douter,
+                                    structurer ses idées — avant de produire la
+                                    vraie réponse.
+                                </p>
+                                <p className="act-lede">
+                                    Ce brouillon est{" "}
+                                    <strong>
+                                        généré comme du texte normal
+                                    </strong>
+                                    , mais l'application le masque à l'écran. Il
+                                    reste néanmoins dans le contexte.
+                                </p>
+                                <div className="act-note">
+                                    Plus c'est complexe, plus le modèle « pense
+                                    longtemps ». Le thinking{" "}
+                                    <strong>
+                                        consomme du contexte et du temps
+                                    </strong>{" "}
+                                    — mais améliore beaucoup la qualité.
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 14,
+                                        width: "100%",
+                                        maxWidth: 440,
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    {/* Thinking block */}
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            padding: 14,
+                                            border: "1.5px dashed var(--c-think)",
+                                            background: "rgba(128,80,208,.04)",
+                                            borderRadius: 10,
+                                            opacity: t1,
+                                            transform: `translateY(${(1 - t1) * 10}px)`,
+                                            filter:
+                                                t2 > 0
+                                                    ? `opacity(${1 - t2 * 0.6})`
+                                                    : "none",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 8,
+                                                marginBottom: 8,
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    fontSize: 9,
+                                                    fontWeight: 700,
+                                                    letterSpacing: ".1em",
+                                                    textTransform: "uppercase",
+                                                    color: "var(--c-think)",
+                                                }}
+                                            >
+                                                💭 Brouillon interne
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: 9,
+                                                    color: "var(--c-think)",
+                                                    opacity: 0.7,
+                                                    fontStyle: "italic",
+                                                }}
+                                            >
+                                                {t2 > 0.3
+                                                    ? "— masqué pour l'utilisateur"
+                                                    : ""}
+                                            </span>
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            {thinkingTokens
+                                                .slice(
+                                                    0,
+                                                    Math.floor(
+                                                        t1 *
+                                                            thinkingTokens.length,
+                                                    ),
+                                                )
+                                                .map((t, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className="tok think"
+                                                    >
+                                                        {t}
+                                                    </span>
+                                                ))}
+                                        </div>
+                                    </div>
+                                    {/* Hidden / arrow */}
+                                    {t2 > 0.2 && (
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                color: "var(--muted)",
+                                                letterSpacing: ".04em",
+                                                opacity: seg(p, 0.55, 0.7),
+                                            }}
+                                        >
+                                            ↓ rangé hors-vue · l'utilisateur
+                                            voit la réponse
+                                        </div>
+                                    )}
+                                    {/* Response */}
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            padding: 14,
+                                            border: "1.5px solid var(--c-ai)",
+                                            background: "rgba(26,123,74,.04)",
+                                            borderRadius: 10,
+                                            opacity: showResp
+                                                ? seg(p, 0.75, 0.9)
+                                                : 0,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 9,
+                                                fontWeight: 700,
+                                                letterSpacing: ".1em",
+                                                textTransform: "uppercase",
+                                                color: "var(--c-ai)",
+                                                marginBottom: 8,
+                                            }}
+                                        >
+                                            Réponse visible
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            {respTokens.map((t, i) => (
+                                                <span
+                                                    key={i}
+                                                    className="tok ai"
+                                                >
+                                                    {t}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 6 — Tools
 ═══════════════════════════════════════════════ */
-function Act6() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  const stage = p < .25 ? 1 : p < .5 ? 2 : p < .75 ? 3 : 4;
+            function Act6() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                const stage = p < 0.25 ? 1 : p < 0.5 ? 2 : p < 0.75 ? 3 : 4;
 
-  return (
-    <section ref={ref} id="act6" className="act" style={{height:'250vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-tool)'}}>6</span>
-            Les outils
-          </div>
-          <h2>Pour le monde extérieur, le modèle <em>écrit</em> qu'il a besoin d'aide.</h2>
-          <p className="act-lede">Le LLM ne peut pas lire le web, ni connaître la météo, ni envoyer des e-mails. Mais il peut écrire un <strong>appel d'outil</strong> — un texte spécial du genre <code style={{fontFamily:'Fira Code',fontSize:13,background:'rgba(0,0,0,.05)',padding:'1px 5px',borderRadius:3}}>web_search("…")</code>.</p>
-          <p className="act-lede">L'application repère ce texte, exécute l'outil, et <strong>réinjecte le résultat dans le contexte</strong>. Puis elle rappelle le LLM, qui peut maintenant répondre pour de vrai.</p>
-          <div className="act-note"><strong>Un tool call = deux allers-retours.</strong> Plus de temps, plus de tokens. C'est invisible dans l'UI, mais ça compte.</div>
-        </div>
-        <div className="act-stage">
-          <div style={{display:'flex',flexDirection:'column',gap:10,width:'100%',maxWidth:440}}>
-            <FlowStep n={1} label="L'utilisateur demande la météo" active={stage>=1}
-              color="var(--c-user)" tok="utilisateur → LLM"/>
-            <FlowStep n={2} label="LLM écrit : get_weather('Paris')" active={stage>=2}
-              color="var(--c-tool)" tok="LLM produit un appel d'outil" dashed/>
-            <FlowStep n={3} label="L'app exécute l'outil et ajoute le résultat" active={stage>=3}
-              color="var(--c-tool)" tok="système → contexte"/>
-            <FlowStep n={4} label="LLM est rappelé et écrit la vraie réponse" active={stage>=4}
-              color="var(--c-ai)" tok="LLM → utilisateur"/>
-            {stage>=4 && (
-              <div style={{marginTop:8,padding:'10px 14px',background:'rgba(160,120,32,.08)',
-                borderRadius:8,fontSize:12,color:'var(--c-tool)',border:'1px dashed var(--c-tool)'}}>
-                ⚠ Le LLM a été appelé <strong>2 fois</strong>  pour ce seul tour. Sa demande get_weather, et la réponse du tool, resteront dans le contexte en plus du message fait en réponse au user.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                return (
+                    <section
+                        ref={ref}
+                        id="act6"
+                        className="act"
+                        style={{ height: "250vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{ background: "var(--c-tool)" }}
+                                    >
+                                        6
+                                    </span>
+                                    Les outils
+                                </div>
+                                <h2>
+                                    Pour le monde extérieur, le modèle{" "}
+                                    <em>écrit</em> qu'il a besoin d'aide.
+                                </h2>
+                                <p className="act-lede">
+                                    Le LLM ne peut pas lire le web, ni connaître
+                                    la météo, ni envoyer des e-mails. Mais il
+                                    peut écrire un{" "}
+                                    <strong>appel d'outil</strong> — un texte
+                                    spécial du genre{" "}
+                                    <code
+                                        style={{
+                                            fontFamily: "Fira Code",
+                                            fontSize: 13,
+                                            background: "rgba(0,0,0,.05)",
+                                            padding: "1px 5px",
+                                            borderRadius: 3,
+                                        }}
+                                    >
+                                        web_search("…")
+                                    </code>
+                                    .
+                                </p>
+                                <p className="act-lede">
+                                    L'application repère ce texte, exécute
+                                    l'outil, et{" "}
+                                    <strong>
+                                        réinjecte le résultat dans le contexte
+                                    </strong>
+                                    . Puis elle rappelle le LLM, qui peut
+                                    maintenant répondre pour de vrai.
+                                </p>
+                                <div className="act-note">
+                                    <strong>
+                                        Un tool call = deux allers-retours.
+                                    </strong>{" "}
+                                    Plus de temps, plus de tokens. C'est
+                                    invisible dans l'UI, mais ça compte.
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 10,
+                                        width: "100%",
+                                        maxWidth: 440,
+                                    }}
+                                >
+                                    <FlowStep
+                                        n={1}
+                                        label="L'utilisateur demande la météo"
+                                        active={stage >= 1}
+                                        color="var(--c-user)"
+                                        tok="utilisateur → LLM"
+                                    />
+                                    <FlowStep
+                                        n={2}
+                                        label="LLM écrit : get_weather('Paris')"
+                                        active={stage >= 2}
+                                        color="var(--c-tool)"
+                                        tok="LLM produit un appel d'outil"
+                                        dashed
+                                    />
+                                    <FlowStep
+                                        n={3}
+                                        label="L'app exécute l'outil et ajoute le résultat"
+                                        active={stage >= 3}
+                                        color="var(--c-tool)"
+                                        tok="système → contexte"
+                                    />
+                                    <FlowStep
+                                        n={4}
+                                        label="LLM est rappelé et écrit la vraie réponse"
+                                        active={stage >= 4}
+                                        color="var(--c-ai)"
+                                        tok="LLM → utilisateur"
+                                    />
+                                    {stage >= 4 && (
+                                        <div
+                                            style={{
+                                                marginTop: 8,
+                                                padding: "10px 14px",
+                                                background:
+                                                    "rgba(160,120,32,.08)",
+                                                borderRadius: 8,
+                                                fontSize: 12,
+                                                color: "var(--c-tool)",
+                                                border: "1px dashed var(--c-tool)",
+                                            }}
+                                        >
+                                            ⚠ Le LLM a été appelé{" "}
+                                            <strong>2 fois</strong> pour ce seul
+                                            tour. Sa demande get_weather, et la
+                                            réponse du tool, resteront dans le
+                                            contexte en plus du message fait en
+                                            réponse au user.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-function FlowStep({n, label, active, color, tok, dashed}) {
-  return (
-    <div style={{display:'flex',gap:12,alignItems:'flex-start',
-      opacity: active ? 1 : .25, transition:'opacity .3s'}}>
-      <div style={{width:28,height:28,borderRadius:'50%',background: active?color:'#DDD',
-        color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',
-        fontSize:12,fontWeight:700,flexShrink:0}}>{n}</div>
-      <div style={{flex:1,padding:'10px 14px',
-        border: dashed ? `1.5px dashed ${color}` : `1.5px solid ${color}`,
-        background: active ? '#fff' : '#FAFAF8',
-        borderRadius:8,boxShadow:active?'0 2px 8px rgba(0,0,0,.04)':'none'}}>
-        <div style={{fontSize:13,fontWeight:500,color:'var(--ink)',marginBottom:2}}>{label}</div>
-        <div style={{fontSize:10,color,letterSpacing:'.04em',fontFamily:'Fira Code'}}>{tok}</div>
-      </div>
-    </div>
-  );
-}
+            function FlowStep({ n, label, active, color, tok, dashed }) {
+                return (
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: 12,
+                            alignItems: "flex-start",
+                            opacity: active ? 1 : 0.25,
+                            transition: "opacity .3s",
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: "50%",
+                                background: active ? color : "#DDD",
+                                color: "#fff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: 12,
+                                fontWeight: 700,
+                                flexShrink: 0,
+                            }}
+                        >
+                            {n}
+                        </div>
+                        <div
+                            style={{
+                                flex: 1,
+                                padding: "10px 14px",
+                                border: dashed
+                                    ? `1.5px dashed ${color}`
+                                    : `1.5px solid ${color}`,
+                                background: active ? "#fff" : "#FAFAF8",
+                                borderRadius: 8,
+                                boxShadow: active
+                                    ? "0 2px 8px rgba(0,0,0,.04)"
+                                    : "none",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    color: "var(--ink)",
+                                    marginBottom: 2,
+                                }}
+                            >
+                                {label}
+                            </div>
+                            <div
+                                style={{
+                                    fontSize: 10,
+                                    color,
+                                    letterSpacing: ".04em",
+                                    fontFamily: "Fira Code",
+                                }}
+                            >
+                                {tok}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 7 — Skills
 ═══════════════════════════════════════════════ */
-function Act7() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  const stage = p < .2 ? 1 : p < .45 ? 2 : p < .7 ? 3 : 4;
+            function Act7() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                const stage = p < 0.2 ? 1 : p < 0.45 ? 2 : p < 0.7 ? 3 : 4;
 
-  return (
-    <section ref={ref} id="act7" className="act" style={{height:'250vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-skill)'}}>7</span>
-            Les skills
-          </div>
-          <h2>Une skill, c'est juste <em>du texte ajouté au contexte</em>, à la demande.</h2>
-          <p className="act-lede">Au lieu de tout charger d'avance (ce qui exploserait le contexte), le système surveille des <strong>mots-clés</strong>. Quand tu parles de finance, un guide « finance » est injecté dans le contexte. Tu parles d'écriture, c'est un autre guide qui apparaît.</p>
-          <p className="act-lede">C'est exactement comme un appel d'outil — sauf que le résultat n'est pas une donnée, c'est <strong>une notice d'instructions</strong>. Le modèle s'en sert pour mieux répondre.</p>
-          <div className="act-note">Plus tu actives de skills, plus le contexte se remplit. C'est pour ça qu'elles ne sont chargées que <strong>quand elles sont pertinentes</strong>.</div>
-        </div>
-        <div className="act-stage">
-          <div style={{display:'flex',flexDirection:'column',gap:12,width:'100%',maxWidth:460}}>
-            {/* Trigger detection */}
-            <div style={{padding:'10px 14px',border:'1.5px solid var(--c-user)',borderRadius:8,
-              background:'#fff',opacity:stage>=1?1:.4,transition:'opacity .3s'}}>
-              <div style={{fontSize:10,color:'var(--c-user)',fontWeight:700,letterSpacing:'.1em',
-                textTransform:'uppercase',marginBottom:4}}>Message utilisateur</div>
-              <div style={{fontSize:13,color:'var(--ink)'}}>« Je veux écrire un poème sur l'automne. »</div>
-            </div>
+                return (
+                    <section
+                        ref={ref}
+                        id="act7"
+                        className="act"
+                        style={{ height: "250vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{ background: "var(--c-skill)" }}
+                                    >
+                                        7
+                                    </span>
+                                    Les skills
+                                </div>
+                                <h2>
+                                    Une skill, c'est juste{" "}
+                                    <em>du texte ajouté au contexte</em>, à la
+                                    demande.
+                                </h2>
+                                <p className="act-lede">
+                                    Au lieu de tout charger d'avance (ce qui
+                                    exploserait le contexte), le système
+                                    surveille des <strong>mots-clés</strong>.
+                                    Quand tu parles de finance, un guide «
+                                    finance » est injecté dans le contexte. Tu
+                                    parles d'écriture, c'est un autre guide qui
+                                    apparaît.
+                                </p>
+                                <p className="act-lede">
+                                    C'est exactement comme un appel d'outil —
+                                    sauf que le résultat n'est pas une donnée,
+                                    c'est{" "}
+                                    <strong>une notice d'instructions</strong>.
+                                    Le modèle s'en sert pour mieux répondre.
+                                </p>
+                                <div className="act-note">
+                                    Plus tu actives de skills, plus le contexte
+                                    se remplit. C'est pour ça qu'elles ne sont
+                                    chargées que{" "}
+                                    <strong>
+                                        quand elles sont pertinentes
+                                    </strong>
+                                    .
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 12,
+                                        width: "100%",
+                                        maxWidth: 460,
+                                    }}
+                                >
+                                    {/* Trigger detection */}
+                                    <div
+                                        style={{
+                                            padding: "10px 14px",
+                                            border: "1.5px solid var(--c-user)",
+                                            borderRadius: 8,
+                                            background: "#fff",
+                                            opacity: stage >= 1 ? 1 : 0.4,
+                                            transition: "opacity .3s",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                color: "var(--c-user)",
+                                                fontWeight: 700,
+                                                letterSpacing: ".1em",
+                                                textTransform: "uppercase",
+                                                marginBottom: 4,
+                                            }}
+                                        >
+                                            Message utilisateur
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                color: "var(--ink)",
+                                            }}
+                                        >
+                                            « Je veux écrire un poème sur
+                                            l'automne. »
+                                        </div>
+                                    </div>
 
-            {/* Detection */}
-            {stage>=2 && (
-              <div style={{textAlign:'center',fontSize:11,color:'var(--c-skill)',fontStyle:'italic'}}>
-                ↓ déclencheur détecté : <strong style={{fontWeight:600}}>« poème »</strong>
-              </div>
-            )}
+                                    {/* Detection */}
+                                    {stage >= 2 && (
+                                        <div
+                                            style={{
+                                                textAlign: "center",
+                                                fontSize: 11,
+                                                color: "var(--c-skill)",
+                                                fontStyle: "italic",
+                                            }}
+                                        >
+                                            ↓ déclencheur détecté :{" "}
+                                            <strong style={{ fontWeight: 600 }}>
+                                                « poème »
+                                            </strong>
+                                        </div>
+                                    )}
 
-            {/* Skill loaded */}
-            <div style={{padding:'12px 14px',border:'1.5px dashed var(--c-skill)',borderRadius:8,
-              background:'rgba(160,48,112,.04)',opacity:stage>=3?1:.2,
-              transition:'opacity .3s, transform .3s',
-              transform:stage>=3?'translateY(0)':'translateY(-8px)'}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                <span style={{fontSize:14}}>📚</span>
-                <span style={{fontSize:11,color:'var(--c-skill)',fontWeight:700,letterSpacing:'.06em',
-                  textTransform:'uppercase'}}>Skill « écriture poétique » chargée</span>
-              </div>
-              <div style={{fontSize:11.5,color:'#666',fontFamily:'Fira Code',lineHeight:1.45}}>
-                # Conseils pour écrire de la poésie{'\n'}
-                - Privilégie l'évocation à la description{'\n'}
-                - Cherche le rythme et la musicalité…{'\n'}
-                <span style={{color:'#AAA'}}>(+ 1 200 tokens)</span>
-              </div>
-            </div>
+                                    {/* Skill loaded */}
+                                    <div
+                                        style={{
+                                            padding: "12px 14px",
+                                            border: "1.5px dashed var(--c-skill)",
+                                            borderRadius: 8,
+                                            background: "rgba(160,48,112,.04)",
+                                            opacity: stage >= 3 ? 1 : 0.2,
+                                            transition:
+                                                "opacity .3s, transform .3s",
+                                            transform:
+                                                stage >= 3
+                                                    ? "translateY(0)"
+                                                    : "translateY(-8px)",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 8,
+                                                marginBottom: 6,
+                                            }}
+                                        >
+                                            <span style={{ fontSize: 14 }}>
+                                                📚
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: "var(--c-skill)",
+                                                    fontWeight: 700,
+                                                    letterSpacing: ".06em",
+                                                    textTransform: "uppercase",
+                                                }}
+                                            >
+                                                Skill « écriture poétique »
+                                                chargée
+                                            </span>
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: 11.5,
+                                                color: "#666",
+                                                fontFamily: "Fira Code",
+                                                lineHeight: 1.45,
+                                            }}
+                                        >
+                                            # Conseils pour écrire de la poésie
+                                            {"\n"}- Privilégie l'évocation à la
+                                            description{"\n"}- Cherche le rythme
+                                            et la musicalité…{"\n"}
+                                            <span style={{ color: "#AAA" }}>
+                                                (+ 1 200 tokens)
+                                            </span>
+                                        </div>
+                                    </div>
 
-            {/* Now the LLM has it */}
-            {stage>=4 && (
-              <div style={{padding:'10px 14px',border:'1.5px solid var(--c-ai)',borderRadius:8,
-                background:'rgba(26,123,74,.04)'}}>
-                <div style={{fontSize:10,color:'var(--c-ai)',fontWeight:700,letterSpacing:'.1em',
-                  textTransform:'uppercase',marginBottom:4}}>LLM répond</div>
-                <div style={{fontSize:13,color:'var(--ink)',fontStyle:'italic'}}>
-                  « En suivant les conseils chargés, voici un poème… »
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                                    {/* Now the LLM has it */}
+                                    {stage >= 4 && (
+                                        <div
+                                            style={{
+                                                padding: "10px 14px",
+                                                border: "1.5px solid var(--c-ai)",
+                                                borderRadius: 8,
+                                                background:
+                                                    "rgba(26,123,74,.04)",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    fontSize: 10,
+                                                    color: "var(--c-ai)",
+                                                    fontWeight: 700,
+                                                    letterSpacing: ".1em",
+                                                    textTransform: "uppercase",
+                                                    marginBottom: 4,
+                                                }}
+                                            >
+                                                LLM répond
+                                            </div>
+                                            <div
+                                                style={{
+                                                    fontSize: 13,
+                                                    color: "var(--ink)",
+                                                    fontStyle: "italic",
+                                                }}
+                                            >
+                                                « En suivant les conseils
+                                                chargés, voici un poème… »
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 8 — Compaction
 ═══════════════════════════════════════════════ */
-function Act8() {
-  const ref = useRef();
-  const p = useScrollProgress(ref);
-  // Phase 1: bar fills up. Phase 2: red zone. Phase 3: compacted, bar shrinks.
-  const fillPct = lerp(20, 96, seg(p, 0, .4));
-  const compacted = p > .55;
-  const finalPct = compacted ? lerp(96, 30, seg(p, .55, .85)) : fillPct;
-  const danger = fillPct > 85 && !compacted;
+            function Act8() {
+                const ref = useRef();
+                const p = useScrollProgress(ref);
+                // Phase 1: bar fills up. Phase 2: red zone. Phase 3: compacted, bar shrinks.
+                const fillPct = lerp(20, 96, seg(p, 0, 0.4));
+                const compacted = p > 0.55;
+                const finalPct = compacted
+                    ? lerp(96, 30, seg(p, 0.55, 0.85))
+                    : fillPct;
+                const danger = fillPct > 85 && !compacted;
 
-  return (
-    <section ref={ref} id="act8" className="act" style={{height:'200vh'}}>
-      <div className="act-inner">
-        <div className="act-text">
-          <div className="act-eyebrow">
-            <span className="num" style={{background:'var(--c-compact)'}}>8</span>
-            La compaction
-          </div>
-          <h2>Quand le contexte sature, l'app résume l'historique.</h2>
-          <p className="act-lede">Chaque modèle a une <strong>limite de contexte</strong> (200 000 tokens, par exemple). Une longue conversation peut s'en approcher dangereusement.</p>
-          <p className="act-lede">L'application détecte la saturation et déclenche une <strong>compaction</strong> : elle remplace tout l'historique par un résumé bref, généré par un LLM. Tu perds les détails, mais tu peux continuer.</p>
-          <div className="act-note">C'est invisible. Mais c'est pour ça que parfois, une longue conversation « oublie » subtilement des détails du début.</div>
-        </div>
-        <div className="act-stage">
-          <div style={{display:'flex',flexDirection:'column',gap:14,width:'100%',maxWidth:380,alignItems:'center'}}>
-            <div style={{fontSize:11,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--muted)',
-              fontWeight:700}}>Fenêtre de contexte</div>
-            <div style={{width:'100%',height:32,background:'#EDEAE3',borderRadius:6,
-              overflow:'hidden',position:'relative'}}>
-              <div style={{height:'100%',
-                background: danger ? 'var(--c-compact)' : compacted ? 'var(--c-ai)' : 'var(--c-user)',
-                width:`${finalPct}%`,transition:'all .6s cubic-bezier(.4,0,.2,1)'}}/>
-              <div style={{position:'absolute',top:0,right:'4%',height:'100%',
-                width:1,background:'#999'}}/>
-              <div style={{position:'absolute',top:'100%',right:'4%',marginTop:4,
-                fontSize:9,color:'#999',fontFamily:'Fira Code'}}>limite</div>
-            </div>
-            <div style={{fontSize:24,fontWeight:700,fontFamily:'Fira Code',
-              color: danger?'var(--c-compact)':compacted?'var(--c-ai)':'var(--ink)',marginTop:14}}>
-              {Math.round(finalPct * 2000)} <span style={{fontSize:11,color:'var(--muted)',fontWeight:400}}>tokens utilisés</span>
-            </div>
-            {danger && (
-              <div style={{padding:'8px 14px',background:'var(--c-compact)',color:'#fff',borderRadius:6,
-                fontSize:12,fontWeight:600}}>
-                ⚠ Saturation imminente
-              </div>
-            )}
-            {compacted && (
-              <div style={{padding:'10px 14px',background:'rgba(26,123,74,.08)',
-                border:'1.5px solid var(--c-ai)',borderRadius:8,fontSize:12,
-                color:'var(--c-ai)',textAlign:'center',maxWidth:340}}>
-                ✓ <strong>Historique compacté.</strong><br/>
-                <span style={{fontSize:11,color:'var(--muted)'}}>« Conversation sur la Révolution française, l'utilisateur souhaitait des conseils de révision… »</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                return (
+                    <section
+                        ref={ref}
+                        id="act8"
+                        className="act"
+                        style={{ height: "200vh" }}
+                    >
+                        <div className="act-inner">
+                            <div className="act-text">
+                                <div className="act-eyebrow">
+                                    <span
+                                        className="num"
+                                        style={{
+                                            background: "var(--c-compact)",
+                                        }}
+                                    >
+                                        8
+                                    </span>
+                                    La compaction
+                                </div>
+                                <h2>
+                                    Quand le contexte sature, l'app résume
+                                    l'historique.
+                                </h2>
+                                <p className="act-lede">
+                                    Chaque modèle a une{" "}
+                                    <strong>limite de contexte</strong> (200 000
+                                    tokens, par exemple). Une longue
+                                    conversation peut s'en approcher
+                                    dangereusement.
+                                </p>
+                                <p className="act-lede">
+                                    L'application détecte la saturation et
+                                    déclenche une <strong>compaction</strong> :
+                                    elle remplace tout l'historique par un
+                                    résumé bref, généré par un LLM. Tu perds les
+                                    détails, mais tu peux continuer.
+                                </p>
+                                <div className="act-note">
+                                    C'est invisible. Mais c'est pour ça que
+                                    parfois, une longue conversation « oublie »
+                                    subtilement des détails du début.
+                                </div>
+                            </div>
+                            <div className="act-stage">
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 14,
+                                        width: "100%",
+                                        maxWidth: 380,
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            letterSpacing: ".1em",
+                                            textTransform: "uppercase",
+                                            color: "var(--muted)",
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        Fenêtre de contexte
+                                    </div>
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            height: 32,
+                                            background: "#EDEAE3",
+                                            borderRadius: 6,
+                                            overflow: "hidden",
+                                            position: "relative",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                height: "100%",
+                                                background: danger
+                                                    ? "var(--c-compact)"
+                                                    : compacted
+                                                      ? "var(--c-ai)"
+                                                      : "var(--c-user)",
+                                                width: `${finalPct}%`,
+                                                transition:
+                                                    "all .6s cubic-bezier(.4,0,.2,1)",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                position: "absolute",
+                                                top: 0,
+                                                right: "4%",
+                                                height: "100%",
+                                                width: 1,
+                                                background: "#999",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                position: "absolute",
+                                                top: "100%",
+                                                right: "4%",
+                                                marginTop: 4,
+                                                fontSize: 9,
+                                                color: "#999",
+                                                fontFamily: "Fira Code",
+                                            }}
+                                        >
+                                            limite
+                                        </div>
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 24,
+                                            fontWeight: 700,
+                                            fontFamily: "Fira Code",
+                                            color: danger
+                                                ? "var(--c-compact)"
+                                                : compacted
+                                                  ? "var(--c-ai)"
+                                                  : "var(--ink)",
+                                            marginTop: 14,
+                                        }}
+                                    >
+                                        {Math.round(finalPct * 2000)}{" "}
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: "var(--muted)",
+                                                fontWeight: 400,
+                                            }}
+                                        >
+                                            tokens utilisés
+                                        </span>
+                                    </div>
+                                    {danger && (
+                                        <div
+                                            style={{
+                                                padding: "8px 14px",
+                                                background: "var(--c-compact)",
+                                                color: "#fff",
+                                                borderRadius: 6,
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            ⚠ Saturation imminente
+                                        </div>
+                                    )}
+                                    {compacted && (
+                                        <div
+                                            style={{
+                                                padding: "10px 14px",
+                                                background:
+                                                    "rgba(26,123,74,.08)",
+                                                border: "1.5px solid var(--c-ai)",
+                                                borderRadius: 8,
+                                                fontSize: 12,
+                                                color: "var(--c-ai)",
+                                                textAlign: "center",
+                                                maxWidth: 340,
+                                            }}
+                                        >
+                                            ✓{" "}
+                                            <strong>
+                                                Historique compacté.
+                                            </strong>
+                                            <br />
+                                            <span
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: "var(--muted)",
+                                                }}
+                                            >
+                                                « Conversation sur la Révolution
+                                                française, l'utilisateur
+                                                souhaitait des conseils de
+                                                révision… »
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    ACT 9 — Recap
 ═══════════════════════════════════════════════ */
-function Act9() {
-  return (
-    <section id="act9" className="outro">
-      <div style={{fontSize:11,letterSpacing:'.16em',textTransform:'uppercase',color:'var(--muted)',
-        fontWeight:700,marginBottom:8}}>Récapitulatif</div>
-      <h2>Tout ce qui s'affiche, c'est du texte.<br/>Tout ce que comprend le modèle, c'est du texte.</h2>
-      <div className="recap-wrap">
-        <div className="paper">
-          {[
-            ['Prompt système','#fff','var(--c-system)'],
-            ['Instructions personnelles','#fff','var(--c-perso)'],
-            ['Skills déclenchées','#fff','var(--c-skill)'],
-            ['Mémoires & fichiers','#fff','var(--c-tool)'],
-            ['Historique (parfois compacté)','#fff','var(--c-compact)'],
-            ['Brouillons internes (thinking)','#fff','var(--c-think)'],
-            ['Appels d\'outils & résultats','#fff','var(--c-tool)'],
-            ['Ton dernier message','#fff','var(--c-user)'],
-          ].map(([l,bg,c],i)=>(
-            <div key={i} className="paper-row" style={{borderLeftColor:c,background:bg}}>
-              <div className="row-head">
-                <span className="row-badge" style={{background:c}}>{l}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{display:'flex',justifyContent:'center',marginTop:10}}>
-          <div style={{width:1,height:24,background:'var(--ink)'}}/>
-        </div>
-        <div className="fn-box" style={{alignSelf:'center'}}>
-          <div className="label">Fonction</div>
-          <div className="name">LLM</div>
-        </div>
-        <div style={{display:'flex',justifyContent:'center',marginTop:10}}>
-          <div style={{width:1,height:24,background:'var(--c-ai)'}}/>
-        </div>
-        <div style={{textAlign:'center',padding:'12px 18px',
-          border:'1.5px solid var(--c-ai)',borderRadius:8,background:'rgba(26,123,74,.04)',
-          fontSize:14,color:'var(--c-ai)',fontWeight:500}}>
-          Tokens prédits, un par un. Voilà.
-        </div>
-      </div>
-      <p className="key" style={{marginTop:24}}>
-        Tout le reste — les agents, les outils, la mémoire, les skills — n'est que des manières d'ajouter du texte avant que la fonction ne soit appelée.
-      </p>
-    </section>
-  );
-}
+            function Act9() {
+                return (
+                    <section id="act9" className="outro">
+                        <div
+                            style={{
+                                fontSize: 11,
+                                letterSpacing: ".16em",
+                                textTransform: "uppercase",
+                                color: "var(--muted)",
+                                fontWeight: 700,
+                                marginBottom: 8,
+                            }}
+                        >
+                            Récapitulatif
+                        </div>
+                        <h2>
+                            Tout ce qui s'affiche, c'est du texte.
+                            <br />
+                            Tout ce que comprend le modèle, c'est du texte.
+                        </h2>
+                        <div className="recap-wrap">
+                            <div className="paper">
+                                {[
+                                    [
+                                        "Prompt système",
+                                        "#fff",
+                                        "var(--c-system)",
+                                    ],
+                                    [
+                                        "Instructions personnelles",
+                                        "#fff",
+                                        "var(--c-perso)",
+                                    ],
+                                    [
+                                        "Skills déclenchées",
+                                        "#fff",
+                                        "var(--c-skill)",
+                                    ],
+                                    [
+                                        "Mémoires & fichiers",
+                                        "#fff",
+                                        "var(--c-tool)",
+                                    ],
+                                    [
+                                        "Historique (parfois compacté)",
+                                        "#fff",
+                                        "var(--c-compact)",
+                                    ],
+                                    [
+                                        "Brouillons internes (thinking)",
+                                        "#fff",
+                                        "var(--c-think)",
+                                    ],
+                                    [
+                                        "Appels d'outils & résultats",
+                                        "#fff",
+                                        "var(--c-tool)",
+                                    ],
+                                    [
+                                        "Ton dernier message",
+                                        "#fff",
+                                        "var(--c-user)",
+                                    ],
+                                ].map(([l, bg, c], i) => (
+                                    <div
+                                        key={i}
+                                        className="paper-row"
+                                        style={{
+                                            borderLeftColor: c,
+                                            background: bg,
+                                        }}
+                                    >
+                                        <div className="row-head">
+                                            <span
+                                                className="row-badge"
+                                                style={{ background: c }}
+                                            >
+                                                {l}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    marginTop: 10,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: 1,
+                                        height: 24,
+                                        background: "var(--ink)",
+                                    }}
+                                />
+                            </div>
+                            <div
+                                className="fn-box"
+                                style={{ alignSelf: "center" }}
+                            >
+                                <div className="label">Fonction</div>
+                                <div className="name">LLM</div>
+                            </div>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    marginTop: 10,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: 1,
+                                        height: 24,
+                                        background: "var(--c-ai)",
+                                    }}
+                                />
+                            </div>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    padding: "12px 18px",
+                                    border: "1.5px solid var(--c-ai)",
+                                    borderRadius: 8,
+                                    background: "rgba(26,123,74,.04)",
+                                    fontSize: 14,
+                                    color: "var(--c-ai)",
+                                    fontWeight: 500,
+                                }}
+                            >
+                                Tokens prédits, un par un. Voilà.
+                            </div>
+                        </div>
+                        <p className="key" style={{ marginTop: 24 }}>
+                            Tout le reste — les agents, les outils, la mémoire,
+                            les skills — n'est que des manières d'ajouter du
+                            texte avant que la fonction ne soit appelée.
+                        </p>
+                    </section>
+                );
+            }
 
-/* ════════════════════════════════════════════════
+            /* ════════════════════════════════════════════════
    APP
 ═══════════════════════════════════════════════ */
-const ACT_IDS = ['hero','act1','act2','act3','act4','act5','act6','act7','act8','act9'];
-const ACT_NAMES = ['Intro','Principe','Conversation','Caching','Couches','Thinking','Outils','Skills','Compaction','Recap'];
+            const ACT_IDS = [
+                "hero",
+                "act1",
+                "act2",
+                "act3",
+                "act4",
+                "act5",
+                "act6",
+                "act7",
+                "act8",
+                "act9",
+            ];
+            const ACT_NAMES = [
+                "Intro",
+                "Principe",
+                "Conversation",
+                "Caching",
+                "Couches",
+                "Thinking",
+                "Outils",
+                "Skills",
+                "Compaction",
+                "Recap",
+            ];
 
-function App() {
-  const active = useActiveAct(ACT_IDS);
+            function App() {
+                const active = useActiveAct(ACT_IDS);
 
-  // Keyboard nav: arrow keys → jump to next act
-  useEffect(() => {
-    const fn = (e) => {
-      if (['INPUT','TEXTAREA'].includes(e.target?.tagName)) return;
-      if (e.code === 'ArrowDown' || e.code === 'PageDown') {
-        e.preventDefault();
-        const next = Math.min(active + 1, ACT_IDS.length - 1);
-        document.getElementById(ACT_IDS[next])?.scrollIntoView({behavior:'smooth'});
-      }
-      if (e.code === 'ArrowUp' || e.code === 'PageUp') {
-        e.preventDefault();
-        const prev = Math.max(active - 1, 0);
-        document.getElementById(ACT_IDS[prev])?.scrollIntoView({behavior:'smooth'});
-      }
-    };
-    window.addEventListener('keydown', fn);
-    return () => window.removeEventListener('keydown', fn);
-  }, [active]);
+                // Keyboard nav: arrow keys → jump to next act
+                useEffect(() => {
+                    const fn = (e) => {
+                        if (["INPUT", "TEXTAREA"].includes(e.target?.tagName))
+                            return;
+                        if (e.code === "ArrowDown" || e.code === "PageDown") {
+                            e.preventDefault();
+                            const next = Math.min(
+                                active + 1,
+                                ACT_IDS.length - 1,
+                            );
+                            document
+                                .getElementById(ACT_IDS[next])
+                                ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                        if (e.code === "ArrowUp" || e.code === "PageUp") {
+                            e.preventDefault();
+                            const prev = Math.max(active - 1, 0);
+                            document
+                                .getElementById(ACT_IDS[prev])
+                                ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                    };
+                    window.addEventListener("keydown", fn);
+                    return () => window.removeEventListener("keydown", fn);
+                }, [active]);
 
-  return (
-    <>
-      <div className="topbar">
-        <div className="brand"><span className="dot"/>Comment marche un LLM ?</div>
-        <div className="act-pill">
-          <span className="num">{String(active).padStart(2,'0')}</span> · {ACT_NAMES[active]}
-        </div>
-      </div>
+                return (
+                    <>
+                        <div className="topbar">
+                            <div className="brand">
+                                <span className="dot" />
+                                Comment marche un LLM ?
+                            </div>
+                            <div className="act-pill">
+                                <span className="num">
+                                    {String(active).padStart(2, "0")}
+                                </span>{" "}
+                                · {ACT_NAMES[active]}
+                            </div>
+                        </div>
 
-      <div className="rail">
-        {ACT_IDS.map((id,i)=>(
-          <button key={id} className={`rail-tick${i===active?' active':i<active?' done':''}`}
-            onClick={()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
-            title={ACT_NAMES[i]}/>
-        ))}
-      </div>
+                        <div className="rail">
+                            {ACT_IDS.map((id, i) => (
+                                <button
+                                    key={id}
+                                    className={`rail-tick${i === active ? " active" : i < active ? " done" : ""}`}
+                                    onClick={() =>
+                                        document
+                                            .getElementById(id)
+                                            ?.scrollIntoView({
+                                                behavior: "smooth",
+                                            })
+                                    }
+                                    title={ACT_NAMES[i]}
+                                />
+                            ))}
+                        </div>
 
-      {/* HERO */}
-      <section id="hero" className="hero">
-        <div style={{fontSize:11,letterSpacing:'.18em',textTransform:'uppercase',color:'var(--muted)',
-          fontWeight:700}}>Une explication visuelle</div>
-        <h1>Comment marche, vraiment, un LLM ?</h1>
-        <p className="sub">Une plongée scrollée dans la mécanique des grands modèles de langage — sans hype, sans jargon, juste l'essentiel.</p>
-        <div className="cta">Scroll · ou flèches ↑↓<span className="arrow"/></div>
-      </section>
+                        {/* HERO */}
+                        <section id="hero" className="hero">
+                            <div
+                                style={{
+                                    fontSize: 11,
+                                    letterSpacing: ".18em",
+                                    textTransform: "uppercase",
+                                    color: "var(--muted)",
+                                    fontWeight: 700,
+                                }}
+                            >
+                                Une explication visuelle
+                            </div>
+                            <h1>Comment marche, vraiment, un LLM ?</h1>
+                            <p className="sub">
+                                Une plongée scrollée dans la mécanique des
+                                grands modèles de langage — sans hype, sans
+                                jargon, juste l'essentiel.
+                            </p>
+                            <div className="cta">
+                                Scroll · ou flèches ↑↓
+                                <span className="arrow" />
+                            </div>
+                        </section>
 
-      <Act1/>
-      <Act2/>
-      <Act3/>
-      <Act4/>
-      <Act5/>
-      <Act6/>
-      <Act7/>
-      <Act8/>
-      <Act9/>
-    </>
-  );
-}
+                        <Act1 />
+                        <Act2 />
+                        <Act3 />
+                        <Act4 />
+                        <Act5 />
+                        <Act6 />
+                        <Act7 />
+                        <Act8 />
+                        <Act9 />
+                    </>
+                );
+            }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-
-</script>
-</body>
+            ReactDOM.createRoot(document.getElementById("root")).render(
+                <App />,
+            );
+        </script>
+    </body>
 </html>
