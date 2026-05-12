@@ -593,6 +593,21 @@
                 animation: pulse 1.6s ease-in-out infinite;
             }
 
+            /* Long-section helper: enables sticky scroll-driven animations on desktop,
+               collapses to natural height on mobile (where sticky is disabled). */
+            .act-long {
+                height: 200vh;
+            }
+            .act-long.lg {
+                height: 250vh;
+            }
+            .act-long.xl {
+                height: 300vh;
+            }
+            .act-long.xxl {
+                height: 350vh;
+            }
+
             /* Responsive: stack on small */
             @media (max-width: 900px) {
                 .act-inner {
@@ -613,6 +628,64 @@
                 }
                 .rail {
                     display: none;
+                }
+            }
+
+            /* Tablet & phone: shrink scroll runways (stacked content is shorter)
+               and let visuals breathe out of their stage box. */
+            @media (max-width: 720px) {
+                .act-long {
+                    height: 220vh;
+                }
+                .act-long.lg {
+                    height: 240vh;
+                }
+                .act-long.xl {
+                    height: 300vh;
+                }
+                .act-long.xxl {
+                    height: 340vh;
+                }
+                .act-stage {
+                    overflow: visible;
+                    padding: 20px 18px 40px;
+                }
+                .act-stage > *,
+                .act-stage > * > * {
+                    max-width: 100% !important;
+                    box-sizing: border-box;
+                }
+                .topbar {
+                    padding: 12px 18px;
+                }
+                .act-pill {
+                    font-size: 10px;
+                }
+            }
+
+            /* Phone scale-down */
+            @media (max-width: 480px) {
+                .act-text {
+                    padding: 24px 18px;
+                }
+                .act-eyebrow {
+                    font-size: 10px;
+                }
+                .fn-box {
+                    padding: 18px 20px;
+                    min-width: 120px;
+                }
+                .fn-box.tall {
+                    padding: 22px 20px;
+                }
+                .fn-box .name {
+                    font-size: 18px;
+                }
+                .tok {
+                    font-size: 11px;
+                }
+                .hero {
+                    padding: 60px 18px;
                 }
             }
         </style>
@@ -688,13 +761,41 @@
             /* ════════════════════════════════════════════════
    ACT 1 — Text in / text out
 ═══════════════════════════════════════════════ */
+            // Illustrative tokenizer breakdown — IDs are plausible but synthetic.
+            const ACT1_TOKENIZATION = [
+                { word: "Parle", parts: ["Par", "le"], ids: [3719, 273] },
+                { word: "-moi", parts: ["-", "moi"], ids: [12, 4516] },
+                { word: " de", parts: [" de"], ids: [283] },
+                { word: " la", parts: [" la"], ids: [1109] },
+                { word: " Révolution", parts: [" Rév", "olution"], ids: [29485, 8721] },
+                { word: " française", parts: [" français", "e"], ids: [42067, 68] },
+                { word: ".", parts: ["."], ids: [13] },
+            ];
+            const ACT1_TOTAL_TOKENS = ACT1_TOKENIZATION.reduce(
+                (a, w) => a + w.parts.length,
+                0,
+            );
+
             function Act1() {
                 const ref = useRef();
                 const p = useScrollProgress(ref);
-                // 0..0.3: input slides in; 0.3..0.6: tokens flow through; 0.6..1: output appears
-                const inputX = lerp(40, 0, seg(p, 0, 0.25));
-                const outputOpacity = seg(p, 0.55, 0.85);
-                const tokenCount = Math.floor(seg(p, 0.35, 0.85) * 8);
+
+                // Four phases. Word/subtoken views crossfade sequentially (no overlap).
+                const wordOp = 1 - seg(p, 0.18, 0.27);
+                const subOp = seg(p, 0.3, 0.42);
+                const showSubs = p > 0.28;
+                const idsOp = seg(p, 0.36, 0.5);
+                const counterOp = seg(p, 0.34, 0.48);
+                const flowOn = p > 0.5 && p < 0.82;
+                const fnEmphasis = seg(p, 0.45, 0.65);
+                const outputOp = seg(p, 0.7, 0.85);
+                const tokenCount = Math.floor(seg(p, 0.7, 1) * 8);
+
+                const inputX = lerp(40, 0, seg(p, 0, 0.18));
+                const inputDim = seg(p, 0.85, 1) * 0.35;
+                const inputScale = lerp(1, 0.94, seg(p, 0.55, 0.7));
+                const subtokenGap = lerp(0, 5, subOp);
+
                 const aiTokens = [
                     "Bonjour",
                     "!",
@@ -710,8 +811,7 @@
                     <section
                         ref={ref}
                         id="act1"
-                        className="act"
-                        style={{ height: "200vh" }}
+                        className="act act-long xl"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -725,22 +825,23 @@
                                     Le principe fondamental
                                 </div>
                                 <h2>
-                                    Un LLM, c'est juste une fonction. Du texte
-                                    entre, du texte sort.
+                                    Un LLM, c'est une fonction : du texte entre,
+                                    du texte sort.
                                 </h2>
                                 <p className="act-lede">
-                                    Pas de mémoire. Pas d'agent qui réfléchit en
-                                    permanence. Juste un programme qui prend du
-                                    texte, et qui prédit la suite.
+                                    Pas d'agent qui réfléchit en boucle — un
+                                    programme qui prend du texte et prédit la
+                                    suite, un <strong>token</strong> à la fois.
                                 </p>
                                 <p className="act-lede">
-                                    Token après token. Le mot le plus probable,
-                                    puis le suivant, puis le suivant.
+                                    Un token n'est pas un mot, c'est un morceau
+                                    de mot. C'est l'unité réelle dont parlent
+                                    les modèles, pour le coût comme pour la
+                                    mémoire.
                                 </p>
                                 <div className="act-note">
-                                    <strong>À retenir :</strong> tout ce qui
-                                    suit n'est qu'une variation autour de cette
-                                    idée. <em>Text in → text out.</em>
+                                    Une même phrase peut faire 7 mots… et 11
+                                    tokens.
                                 </div>
                             </div>
                             <div className="act-stage">
@@ -749,14 +850,17 @@
                                         display: "flex",
                                         alignItems: "center",
                                         gap: 38,
-                                        opacity: 1,
+                                        flexWrap: "wrap",
+                                        justifyContent: "center",
                                     }}
                                 >
+                                    {/* ─── INPUT ─── */}
                                     <div
                                         style={{
-                                            transform: `translateX(${inputX}px)`,
-                                            opacity: 1 - seg(p, 0.85, 1) * 0.4,
-                                            transition: "opacity .2s",
+                                            transform: `translateX(${inputX}px) scale(${inputScale})`,
+                                            opacity: 1 - inputDim,
+                                            transition: "opacity .25s",
+                                            position: "relative",
                                         }}
                                     >
                                         <div
@@ -773,39 +877,170 @@
                                         </div>
                                         <div
                                             style={{
-                                                display: "flex",
-                                                flexWrap: "wrap",
-                                                maxWidth: 200,
+                                                position: "relative",
+                                                minHeight: 84,
+                                                width: 280,
                                             }}
                                         >
-                                            {[
-                                                "Parle",
-                                                "-",
-                                                "moi",
-                                                "de",
-                                                "la",
-                                                "Révolution",
-                                                "française",
-                                                ".",
-                                            ].map((t, i) => (
-                                                <span
-                                                    key={i}
-                                                    className="tok user"
-                                                >
-                                                    {t}
-                                                </span>
-                                            ))}
+                                            {/* Word-level view */}
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    inset: 0,
+                                                    display: "flex",
+                                                    flexWrap: "wrap",
+                                                    opacity: wordOp,
+                                                    visibility: showSubs
+                                                        ? "hidden"
+                                                        : "visible",
+                                                    transition: "opacity .15s",
+                                                    pointerEvents: showSubs
+                                                        ? "none"
+                                                        : "auto",
+                                                }}
+                                            >
+                                                {ACT1_TOKENIZATION.map(
+                                                    (w, i) => (
+                                                        <span
+                                                            key={i}
+                                                            className="tok user"
+                                                        >
+                                                            {w.word.trim() ||
+                                                                w.word}
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                            {/* Subtoken view */}
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    inset: 0,
+                                                    display: "flex",
+                                                    flexWrap: "wrap",
+                                                    rowGap: 8,
+                                                    columnGap: subtokenGap,
+                                                    opacity: subOp,
+                                                    visibility: showSubs
+                                                        ? "visible"
+                                                        : "hidden",
+                                                    transition: "opacity .15s",
+                                                    pointerEvents: showSubs
+                                                        ? "auto"
+                                                        : "none",
+                                                }}
+                                            >
+                                                {ACT1_TOKENIZATION.map(
+                                                    (w, wi) => (
+                                                        <span
+                                                            key={wi}
+                                                            style={{
+                                                                display:
+                                                                    "inline-flex",
+                                                                flexDirection:
+                                                                    "column",
+                                                                alignItems:
+                                                                    "stretch",
+                                                                gap: 2,
+                                                            }}
+                                                        >
+                                                            <span
+                                                                style={{
+                                                                    display:
+                                                                        "inline-flex",
+                                                                    gap: 1,
+                                                                }}
+                                                            >
+                                                                {w.parts.map(
+                                                                    (
+                                                                        part,
+                                                                        pi,
+                                                                    ) => (
+                                                                        <span
+                                                                            key={
+                                                                                pi
+                                                                            }
+                                                                            className="tok user"
+                                                                            style={{
+                                                                                margin: 0,
+                                                                                whiteSpace:
+                                                                                    "pre",
+                                                                            }}
+                                                                        >
+                                                                            {
+                                                                                part
+                                                                            }
+                                                                        </span>
+                                                                    ),
+                                                                )}
+                                                            </span>
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 8.5,
+                                                                    fontFamily:
+                                                                        "Fira Code, monospace",
+                                                                    color: "var(--muted)",
+                                                                    opacity:
+                                                                        idsOp,
+                                                                    letterSpacing:
+                                                                        "-0.02em",
+                                                                    textAlign:
+                                                                        "center",
+                                                                    minHeight:
+                                                                        "1em",
+                                                                }}
+                                                            >
+                                                                {w.ids.join(
+                                                                    " ",
+                                                                )}
+                                                            </span>
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div
+                                            style={{
+                                                marginTop: 14,
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                fontFamily:
+                                                    "Fira Code, monospace",
+                                                color: "var(--muted)",
+                                                opacity: counterOp,
+                                                letterSpacing: ".02em",
+                                            }}
+                                        >
+                                            {ACT1_TOKENIZATION.length} mots ·{" "}
+                                            <span
+                                                style={{
+                                                    color: "var(--c-user)",
+                                                }}
+                                            >
+                                                {ACT1_TOTAL_TOKENS} tokens
+                                            </span>
                                         </div>
                                     </div>
+
+                                    {/* ─── FN BOX ─── */}
                                     <div
                                         className="fn-box tall"
-                                        style={{ position: "relative" }}
+                                        style={{
+                                            position: "relative",
+                                            opacity: lerp(
+                                                0.45,
+                                                1,
+                                                fnEmphasis,
+                                            ),
+                                            transform: `scale(${lerp(0.94, 1, fnEmphasis)})`,
+                                            transition:
+                                                "opacity .25s, transform .25s",
+                                        }}
                                     >
                                         <div className="icon">📦</div>
                                         <div className="label">Fonction</div>
                                         <div className="name">LLM</div>
-                                        {/* Flowing dots */}
-                                        {p > 0.25 && p < 0.85 && (
+                                        {flowOn && (
                                             <svg
                                                 width="80"
                                                 height="20"
@@ -838,9 +1073,11 @@
                                             </svg>
                                         )}
                                     </div>
+
+                                    {/* ─── OUTPUT ─── */}
                                     <div
                                         style={{
-                                            opacity: outputOpacity,
+                                            opacity: outputOp,
                                             minWidth: 200,
                                         }}
                                     >
@@ -873,21 +1110,24 @@
                                                         {t}
                                                     </span>
                                                 ))}
-                                            {tokenCount < aiTokens.length && (
-                                                <span
-                                                    style={{
-                                                        display: "inline-block",
-                                                        width: 2,
-                                                        height: 14,
-                                                        background:
-                                                            "var(--c-ai)",
-                                                        marginLeft: 2,
-                                                        verticalAlign: "middle",
-                                                        animation:
-                                                            "hereflow .8s infinite",
-                                                    }}
-                                                />
-                                            )}
+                                            {tokenCount < aiTokens.length &&
+                                                outputOp > 0.1 && (
+                                                    <span
+                                                        style={{
+                                                            display:
+                                                                "inline-block",
+                                                            width: 2,
+                                                            height: 14,
+                                                            background:
+                                                                "var(--c-ai)",
+                                                            marginLeft: 2,
+                                                            verticalAlign:
+                                                                "middle",
+                                                            animation:
+                                                                "hereflow .8s infinite",
+                                                        }}
+                                                    />
+                                                )}
                                         </div>
                                     </div>
                                 </div>
@@ -949,8 +1189,7 @@
                     <section
                         ref={ref}
                         id="act2"
-                        className="act"
-                        style={{ height: "250vh" }}
+                        className="act act-long lg"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -972,21 +1211,18 @@
                                     envoies ton 3<sup>ème</sup> message,
                                     l'application renvoie au modèle{" "}
                                     <strong>
-                                        les 5 messages précédents + le tien
-                                    </strong>
-                                    . Tout. Depuis le début.
+                                        les 5 messages précédents et le tien
+                                    </strong>{" "}
+                                    — l'historique complet, à chaque fois.
                                 </p>
                                 <p className="act-lede">
                                     Le modèle relit l'intégralité, puis prédit
                                     la suite.
                                 </p>
                                 <div className="act-note">
-                                    Conséquence directe :{" "}
-                                    <strong>
-                                        plus la conversation est longue, plus
-                                        c'est long et coûteux.
-                                    </strong>{" "}
-                                    Chaque tour = relire toute l'histoire.
+                                    Plus la conversation est longue, plus
+                                    chaque tour est lent et coûteux : relire
+                                    toute l'histoire, à chaque message.
                                 </div>
                             </div>
                             <div className="act-stage">
@@ -1127,8 +1363,7 @@
                     <section
                         ref={ref}
                         id="act3"
-                        className="act"
-                        style={{ height: "200vh" }}
+                        className="act act-long"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -1147,21 +1382,21 @@
                                 </h2>
                                 <p className="act-lede">
                                     Si on relisait vraiment tout à chaque tour,
-                                    les conversations longues seraient
-                                    insupportables. Heureusement, il y a une
-                                    astuce.
+                                    les longues conversations seraient
+                                    insupportables. En pratique, on ne le fait
+                                    pas.
                                 </p>
                                 <p className="act-lede">
                                     <strong>Le prompt caching</strong> : la
                                     partie déjà traitée d'un tour précédent est
-                                    mise en cache. Le modèle peut la réutiliser
-                                    sans tout recalculer.
+                                    mise en cache. Le modèle la réutilise sans
+                                    tout recalculer.
                                 </p>
                                 <div className="act-note">
                                     Seul <strong>le nouveau bout</strong> est
-                                    vraiment traité. C'est pour ça qu'à part le
-                                    tout premier message, la latence reste à peu
-                                    près constante.
+                                    vraiment traité — d'où une latence à peu
+                                    près constante, sauf au tout premier
+                                    message.
                                 </div>
                             </div>
                             <div className="act-stage">
@@ -1344,8 +1579,7 @@
                     <section
                         ref={ref}
                         id="act4"
-                        className="act"
-                        style={{ height: "250vh" }}
+                        className="act act-long lg"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -1371,14 +1605,13 @@
                                     ton message.
                                 </p>
                                 <p className="act-lede">
-                                    Toutes ces couches partent dans la fonction.
-                                    Toutes consomment du contexte.
+                                    Toutes ces couches partent dans la même
+                                    fonction, et toutes occupent du contexte.
                                 </p>
                                 <div className="act-note">
-                                    C'est pour ça qu'un LLM peut sembler te «
-                                    connaître » — alors qu'en réalité, tout est
-                                    juste écrit, à chaque fois, dans le texte
-                                    qu'on lui envoie.
+                                    Si un LLM semble te « connaître », ce n'est
+                                    pas magique : tout est réécrit dans le
+                                    texte qu'on lui envoie, à chaque tour.
                                 </div>
                             </div>
                             <div className="act-stage">
@@ -1495,8 +1728,7 @@
                     <section
                         ref={ref}
                         id="act5"
-                        className="act"
-                        style={{ height: "200vh" }}
+                        className="act act-long"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -1515,8 +1747,8 @@
                                 </h2>
                                 <p className="act-lede">
                                     Sur les questions complexes, le LLM peut
-                                    écrire un brouillon — explorer, douter,
-                                    structurer ses idées — avant de produire la
+                                    écrire un brouillon — tester des pistes,
+                                    structurer son raisonnement — avant la
                                     vraie réponse.
                                 </p>
                                 <p className="act-lede">
@@ -1524,8 +1756,8 @@
                                     <strong>
                                         généré comme du texte normal
                                     </strong>
-                                    , mais l'application le masque à l'écran. Il
-                                    reste néanmoins dans le contexte.
+                                    , puis masqué par l'application. Il reste
+                                    dans le contexte.
                                 </p>
                                 <div className="act-note">
                                     Plus c'est complexe, plus le modèle « pense
@@ -1693,8 +1925,7 @@
                     <section
                         ref={ref}
                         id="act6"
-                        className="act"
-                        style={{ height: "250vh" }}
+                        className="act act-long lg"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -1743,7 +1974,7 @@
                                     <strong>
                                         Un tool call = deux allers-retours.
                                     </strong>{" "}
-                                    Plus de temps, plus de tokens. C'est
+                                    Plus long, plus de tokens consommés —
                                     invisible dans l'UI, mais ça compte.
                                 </div>
                             </div>
@@ -1893,8 +2124,7 @@
                     <section
                         ref={ref}
                         id="act7"
-                        className="act"
-                        style={{ height: "250vh" }}
+                        className="act act-long lg"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -1916,17 +2146,16 @@
                                     Au lieu de tout charger d'avance (ce qui
                                     exploserait le contexte), le système
                                     surveille des <strong>mots-clés</strong>.
-                                    Quand tu parles de finance, un guide «
-                                    finance » est injecté dans le contexte. Tu
-                                    parles d'écriture, c'est un autre guide qui
-                                    apparaît.
+                                    Tu parles finance, un guide « finance »
+                                    est injecté ; tu passes à l'écriture, un
+                                    autre prend sa place.
                                 </p>
                                 <p className="act-lede">
-                                    C'est exactement comme un appel d'outil —
-                                    sauf que le résultat n'est pas une donnée,
-                                    c'est{" "}
-                                    <strong>une notice d'instructions</strong>.
-                                    Le modèle s'en sert pour mieux répondre.
+                                    C'est le même mécanisme qu'un appel d'outil
+                                    — sauf que le résultat injecté n'est pas
+                                    une donnée, c'est{" "}
+                                    <strong>une notice d'instructions</strong>{" "}
+                                    dont le modèle se sert pour répondre.
                                 </p>
                                 <div className="act-note">
                                     Plus tu actives de skills, plus le contexte
@@ -2105,20 +2334,48 @@
             function Act8() {
                 const ref = useRef();
                 const p = useScrollProgress(ref);
-                // Phase 1: bar fills up. Phase 2: red zone. Phase 3: compacted, bar shrinks.
-                const fillPct = lerp(20, 96, seg(p, 0, 0.4));
-                const compacted = p > 0.55;
-                const finalPct = compacted
-                    ? lerp(96, 30, seg(p, 0.55, 0.85))
-                    : fillPct;
-                const danger = fillPct > 85 && !compacted;
+
+                // 4 phases:
+                //   A 0.00–0.25  context near-empty, instruction is clear → faithful FR answer
+                //   B 0.25–0.50  context near-full, instruction dilutes  → drifted EN answer
+                //   C 0.50–0.75  saturation imminent (red bar)
+                //   D 0.75–1.00  compaction kicks in (bar shrinks, summary appears)
+                const phaseA = p < 0.25;
+                const phaseB = p >= 0.25 && p < 0.5;
+                const phaseC = p >= 0.5 && p < 0.75;
+                const phaseD = p >= 0.75;
+
+                const fillPct = lerp(14, 86, seg(p, 0.05, 0.45));
+                const dangerPct = lerp(86, 96, seg(p, 0.5, 0.65));
+                const compactPct = lerp(96, 28, seg(p, 0.75, 0.9));
+                const finalPct = phaseD
+                    ? compactPct
+                    : phaseC
+                      ? dangerPct
+                      : fillPct;
+
+                const instructionEmph = lerp(
+                    1,
+                    0.35,
+                    seg(p, 0.22, 0.45),
+                );
+                const instructionScale = lerp(
+                    1.08,
+                    0.78,
+                    seg(p, 0.22, 0.5),
+                );
+
+                const barColor = phaseD
+                    ? "var(--c-ai)"
+                    : phaseC
+                      ? "var(--c-compact)"
+                      : "var(--c-user)";
 
                 return (
                     <section
                         ref={ref}
                         id="act8"
-                        className="act"
-                        style={{ height: "200vh" }}
+                        className="act act-long xxl"
                     >
                         <div className="act-inner">
                             <div className="act-text">
@@ -2131,43 +2388,63 @@
                                     >
                                         8
                                     </span>
-                                    La compaction
+                                    Contexte et compaction
                                 </div>
                                 <h2>
-                                    Quand le contexte sature, l'app résume
-                                    l'historique.
+                                    Plus le contexte est plein, plus une
+                                    instruction se dilue.
                                 </h2>
                                 <p className="act-lede">
                                     Chaque modèle a une{" "}
                                     <strong>limite de contexte</strong> (200 000
-                                    tokens, par exemple). Une longue
-                                    conversation peut s'en approcher
-                                    dangereusement.
+                                    tokens, par exemple). Bien avant la limite,
+                                    une consigne donnée au début risque de
+                                    passer à la trappe — elle est toujours là,
+                                    mais noyée dans le bruit.
                                 </p>
                                 <p className="act-lede">
-                                    L'application détecte la saturation et
+                                    Quand la fenêtre sature pour de bon, l'app
                                     déclenche une <strong>compaction</strong> :
-                                    elle remplace tout l'historique par un
-                                    résumé bref, généré par un LLM. Tu perds les
-                                    détails, mais tu peux continuer.
+                                    l'historique est remplacé par un résumé. On
+                                    perd les détails, on peut continuer.
                                 </p>
-                                <div className="act-note">
-                                    C'est invisible. Mais c'est pour ça que
-                                    parfois, une longue conversation « oublie »
-                                    subtilement des détails du début.
-                                </div>
                             </div>
                             <div className="act-stage">
                                 <div
                                     style={{
                                         display: "flex",
                                         flexDirection: "column",
-                                        gap: 14,
+                                        gap: 12,
                                         width: "100%",
-                                        maxWidth: 380,
-                                        alignItems: "center",
+                                        maxWidth: 420,
+                                        alignItems: "stretch",
                                     }}
                                 >
+                                    {/* INSTRUCTION CHIP */}
+                                    <div
+                                        style={{
+                                            alignSelf: "center",
+                                            transform: `scale(${instructionScale})`,
+                                            opacity: instructionEmph,
+                                            padding: "8px 14px",
+                                            border: "2px solid var(--c-system)",
+                                            background:
+                                                "rgba(194,96,32,.06)",
+                                            borderRadius: 10,
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            color: "var(--c-system)",
+                                            boxShadow: phaseA
+                                                ? "0 0 0 6px rgba(194,96,32,.10)"
+                                                : "none",
+                                            transition:
+                                                "box-shadow .45s, opacity .45s, transform .45s",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        ↳ Réponds toujours en français.
+                                    </div>
+
                                     <div
                                         style={{
                                             fontSize: 11,
@@ -2175,6 +2452,7 @@
                                             textTransform: "uppercase",
                                             color: "var(--muted)",
                                             fontWeight: 700,
+                                            marginTop: 4,
                                         }}
                                     >
                                         Fenêtre de contexte
@@ -2182,7 +2460,7 @@
                                     <div
                                         style={{
                                             width: "100%",
-                                            height: 32,
+                                            height: 36,
                                             background: "#EDEAE3",
                                             borderRadius: 6,
                                             overflow: "hidden",
@@ -2192,16 +2470,41 @@
                                         <div
                                             style={{
                                                 height: "100%",
-                                                background: danger
-                                                    ? "var(--c-compact)"
-                                                    : compacted
-                                                      ? "var(--c-ai)"
-                                                      : "var(--c-user)",
+                                                background: barColor,
                                                 width: `${finalPct}%`,
                                                 transition:
                                                     "all .6s cubic-bezier(.4,0,.2,1)",
                                             }}
                                         />
+                                        {/* Buried instruction marker (visible once context is fuller) */}
+                                        {!phaseD && finalPct > 25 && (
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    top: 8,
+                                                    left: "3%",
+                                                    height: 20,
+                                                    padding: "0 6px",
+                                                    background:
+                                                        "var(--c-system)",
+                                                    color: "#fff",
+                                                    fontSize: 9,
+                                                    fontWeight: 700,
+                                                    borderRadius: 3,
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    opacity:
+                                                        seg(p, 0.18, 0.32) *
+                                                        0.85,
+                                                    transition: "opacity .4s",
+                                                    pointerEvents: "none",
+                                                    fontFamily: "Fira Code",
+                                                    letterSpacing: ".05em",
+                                                }}
+                                            >
+                                                FR
+                                            </div>
+                                        )}
                                         <div
                                             style={{
                                                 position: "absolute",
@@ -2228,15 +2531,12 @@
                                     </div>
                                     <div
                                         style={{
-                                            fontSize: 24,
+                                            fontSize: 22,
                                             fontWeight: 700,
                                             fontFamily: "Fira Code",
-                                            color: danger
-                                                ? "var(--c-compact)"
-                                                : compacted
-                                                  ? "var(--c-ai)"
-                                                  : "var(--ink)",
-                                            marginTop: 14,
+                                            color: barColor,
+                                            marginTop: 8,
+                                            alignSelf: "center",
                                         }}
                                     >
                                         {Math.round(finalPct * 2000)}{" "}
@@ -2250,50 +2550,139 @@
                                             tokens utilisés
                                         </span>
                                     </div>
-                                    {danger && (
-                                        <div
-                                            style={{
-                                                padding: "8px 14px",
-                                                background: "var(--c-compact)",
-                                                color: "#fff",
-                                                borderRadius: 6,
-                                                fontSize: 12,
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            ⚠ Saturation imminente
-                                        </div>
-                                    )}
-                                    {compacted && (
-                                        <div
-                                            style={{
-                                                padding: "10px 14px",
-                                                background:
-                                                    "rgba(26,123,74,.08)",
-                                                border: "1.5px solid var(--c-ai)",
-                                                borderRadius: 8,
-                                                fontSize: 12,
-                                                color: "var(--c-ai)",
-                                                textAlign: "center",
-                                                maxWidth: 340,
-                                            }}
-                                        >
-                                            ✓{" "}
-                                            <strong>
-                                                Historique compacté.
-                                            </strong>
-                                            <br />
-                                            <span
+
+                                    {/* STATE BADGE */}
+                                    <div
+                                        style={{
+                                            minHeight: 32,
+                                            alignSelf: "center",
+                                            marginTop: 2,
+                                        }}
+                                    >
+                                        {phaseA && (
+                                            <div
                                                 style={{
+                                                    padding: "6px 12px",
+                                                    background:
+                                                        "rgba(26,123,74,.10)",
+                                                    color: "var(--c-ai)",
+                                                    border: "1.5px solid var(--c-ai)",
+                                                    borderRadius: 6,
                                                     fontSize: 11,
-                                                    color: "var(--muted)",
+                                                    fontWeight: 600,
                                                 }}
                                             >
-                                                « Conversation sur la Révolution
-                                                française, l'utilisateur
-                                                souhaitait des conseils de
-                                                révision… »
-                                            </span>
+                                                Fidélité à l'instruction : 100%
+                                            </div>
+                                        )}
+                                        {phaseB && (
+                                            <div
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    background:
+                                                        "rgba(184,91,69,.10)",
+                                                    color: "var(--c-compact)",
+                                                    border: "1.5px solid var(--c-compact)",
+                                                    borderRadius: 6,
+                                                    fontSize: 11,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                Fidélité ~40% · instruction
+                                                noyée
+                                            </div>
+                                        )}
+                                        {phaseC && (
+                                            <div
+                                                style={{
+                                                    padding: "8px 14px",
+                                                    background:
+                                                        "var(--c-compact)",
+                                                    color: "#fff",
+                                                    borderRadius: 6,
+                                                    fontSize: 12,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                ⚠ Saturation imminente
+                                            </div>
+                                        )}
+                                        {phaseD && (
+                                            <div
+                                                style={{
+                                                    padding: "10px 14px",
+                                                    background:
+                                                        "rgba(26,123,74,.08)",
+                                                    border: "1.5px solid var(--c-ai)",
+                                                    borderRadius: 8,
+                                                    fontSize: 12,
+                                                    color: "var(--c-ai)",
+                                                    textAlign: "center",
+                                                    maxWidth: 380,
+                                                }}
+                                            >
+                                                ✓{" "}
+                                                <strong>
+                                                    Historique compacté.
+                                                </strong>
+                                                <br />
+                                                <span
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--muted)",
+                                                    }}
+                                                >
+                                                    « Conversation sur la
+                                                    Révolution française… »
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* MODEL OUTPUT PREVIEW (phases A & B) */}
+                                    {(phaseA || phaseB) && (
+                                        <div
+                                            style={{
+                                                marginTop: 4,
+                                                padding: "10px 14px",
+                                                background:
+                                                    "rgba(0,0,0,0.03)",
+                                                borderRadius: 8,
+                                                borderLeft: `3px solid ${phaseA ? "var(--c-ai)" : "var(--c-compact)"}`,
+                                                fontSize: 12,
+                                                color: "#333",
+                                                fontFamily:
+                                                    "Fira Code, monospace",
+                                                lineHeight: 1.5,
+                                            }}
+                                        >
+                                            {phaseA ? (
+                                                <>
+                                                    <span
+                                                        style={{
+                                                            color: "var(--c-ai)",
+                                                            fontWeight: 700,
+                                                        }}
+                                                    >
+                                                        ✓{" "}
+                                                    </span>
+                                                    La Révolution française a
+                                                    commencé en 1789…
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span
+                                                        style={{
+                                                            color: "var(--c-compact)",
+                                                            fontWeight: 700,
+                                                        }}
+                                                    >
+                                                        ✗{" "}
+                                                    </span>
+                                                    The French Revolution
+                                                    started in 1789…
+                                                </>
+                                            )}
                                         </div>
                                     )}
                                 </div>
